@@ -1,3 +1,5 @@
+import copy
+
 WHITE_HB = 0 # white player homeboard (cima); has one black board and one white board
 BLACK_HB = 1 # black player homeboard (baixo); has one black board and one white board
 BLACK_BOARD = 0 # black colored boards (left side boards)
@@ -127,10 +129,10 @@ class GameLogic:
         
     # END AUX FUNTIONS
         
-    def passiveMove(self) :     
+    def passiveMoveSelect(self, color) :     
         while(True):
             print("\nPassive Move:", end="")
-            row_from, col_from = input("Select a piece from your homeboard (<row> <column>): ").split()
+            row_from, col_from = input("Select a "+color+" piece from your homeboard (<row> <column>): ").split()
             color_side, row_index, col_index = self.parseInput(row_from, col_from)
             
             if(color_side is None or row_index is None or col_index is None):
@@ -149,7 +151,7 @@ class GameLogic:
     def passiveMoveOptions(self, color_side, row_index, col_index):
         
         aux_board = Board()
-        aux_board.boards = self.board.boards.copy()
+        aux_board.boards = copy.deepcopy(self.board.boards)
         options = []
         
         for i in range(row_index - 2, row_index + 3): #2 rows behind, 2 rows ahead
@@ -193,27 +195,56 @@ class GameLogic:
             # re-select piece option 
             else:
                 return 0
-
+            
         
-    def turn(self):
-        
+    def passiveMove(self, color) :
         while(True):
             
             self.board.display()
-            if(self.player):
-                print("\nBlack player's turn:") 
-            else: 
-                print("\nWhite player's turn:")
-        
-            color_side, row_index, col_index = self.passiveMove()
+                
+            print("\n"+color+" player's turn:")
+            
+            color_side, row_index, col_index = self.passiveMoveSelect(color.lower())
             
             option = self.passiveMoveOptions(color_side, row_index, col_index)
             
             if(option != 0):
                 break
             
-        print("selected option:" + str(option))
+        return option, color_side
+        
+    
+    def legalAgressiveMoves(self, offset, color_side, color):
+        
+        
+        if(color == "Black"):
+            piece = "B"
+        else:
+            piece = "W"
+        
+        other_color = color_side + 1 % 2
+    
+        
+        for row in range(4):
+            for col in range(4):
+                if(self.board.boards[0][other_color][row][col] == piece):
+                    print("hit")
+                    
+    
+    def agressiveMode(self, offset, color_side, color):     
+        self.legalAgressiveMoves(offset, color_side, color)
+    
+    def turn(self):
+        
+        if(self.player):
+            color = 'Black'
+        else: 
+            color = 'White'
             
+        offset, color_side = self.passiveMove(color)
+        print(offset)
+        self.agressiveMode(offset, color_side, color)
+        
         
     
 
