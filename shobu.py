@@ -27,14 +27,14 @@ class Board:
                          [' ',' ',' ',' '],
                          ['B','B','B','B']]]] 
         
-    def displayHomeboard(self, color, color_string):
+    def displayHomeboard(self, color, color_string, row_number):
         
         
         print("   _______________________  |  _______________________ ")
         
         for row in range(4):
             print("  |     |     |     |     | | |     |     |     |     |")
-            print(row+1, end=" ") # row label
+            print(row_number, end=" ") # row label
             
             for black_cell in range(4): # print row from black board
                 print("|  " + self.boards[color][BLACK_BOARD][row][black_cell] + "  ", end="")
@@ -46,14 +46,16 @@ class Board:
             if(row == 1):
                 print("   " + color_string + "'s Homeboards", end="")
             print("")
+            
+            row_number += 1
     
     
     def display(self):
         print("\n         Black Boards               White Boards      ")
         print("\n     A     B     C     D    |    E     F     G     H")
-        self.displayHomeboard(WHITE_HB, "White")
+        self.displayHomeboard(WHITE_HB, "White", 1)
         print(" ___________________________|__________________________")
-        self.displayHomeboard(BLACK_HB, "Black")
+        self.displayHomeboard(BLACK_HB, "Black", 5)
         
 
 class GameLogic:
@@ -61,7 +63,9 @@ class GameLogic:
         self.board = Board()
         self.player = 1 # white=0, black=1
 
-    # BEGIN AUX FUNTIONS
+    # =============================================================================
+    #  AUX FUNTIONS
+    # =============================================================================
     
     def switch_01(self, number):
         return number + 1 % 2
@@ -76,9 +80,9 @@ class GameLogic:
     def parseInput(self, row, col):
 
         int_row = self.parseInt(row) 
-        if(int_row is None or int_row < 1 or int_row > 4):
+        if(int_row is None or int_row < 1 or int_row > 8):
             return None, None, None
-        row_index = int_row - 1
+        row_index = (int_row - 1) % 4
             
         if(col == 'A' or col == 'a'):
             return BLACK_BOARD, row_index, 0
@@ -126,10 +130,14 @@ class GameLogic:
         else:
             return None
         
-        
-    # END AUX FUNTIONS
-        
-    def passiveMoveSelect(self, color) :     
+    
+    # =============================================================================
+    #  PASSIVE MOVE   
+    # =============================================================================
+    
+    # receives input from user to select desired piece; returns piece coordinates
+    
+    def selectPiece(self, color) :     
         while(True):
             print("\nPassive Move:", end="")
             row_from, col_from = input("Select a "+color+" piece from your homeboard (<row> <column>): ").split()
@@ -146,9 +154,9 @@ class GameLogic:
                 print("CHOOSE A PIECE OF YOUR COLOR")
 
 
-    # função que da display de um 'x' nas celulas disponiveis para um passive move
+    # displays board with an 'x' in the available passive move options; returns options
         
-    def passiveMoveOptions(self, color_side, row_index, col_index):
+    def legalPassiveMoves(self, color_side, row_index, col_index):
         
         aux_board = Board()
         aux_board.boards = copy.deepcopy(self.board.boards)
@@ -161,7 +169,7 @@ class GameLogic:
                  if(j < 0 or j > 3): 
                      continue
                  
-                 # efeito estrela
+                 # efeito asterisco
                  if(((i == row_index - 2 or i == row_index + 2) and (j == col_index - 1 or j == col_index + 1)) or 
                     (((i == row_index - 1 or i == row_index + 1) and (j == col_index - 2 or j == col_index + 2)))):
                      continue
@@ -169,9 +177,14 @@ class GameLogic:
                  if(self.board.boards[self.player][color_side][i][j] == ' '):
                      aux_board.boards[self.player][color_side][i][j] = 'x'
                      options.append([i,j])
-         
+        
         aux_board.display()
         
+        return options
+    
+    # displays passive move options, lets user select desired one; returns desired move offset from piece cell (or 0 if player wants to re-select piece option)
+    def passiveMoveOptions(self, options, color_side, row_index, col_index):
+                
         print("\nPassive move options:")
         print("0: re-select piece")
         counter = 1
@@ -186,16 +199,17 @@ class GameLogic:
             if(parsed_selected_option is None or parsed_selected_option < 0 or parsed_selected_option > len(options)):
                 print("INVALID INPUT")
             
-            # if option selected, return (row_offset, col_offset)
+            # if option selected, return [row_offset, col_offset]
             elif(parsed_selected_option != 0): 
                 target_row = options[parsed_selected_option-1][0]
                 target_col = options[parsed_selected_option-1][1]
-                return (target_row-row_index,target_col-col_index)
+                return [target_row-row_index,target_col-col_index]
             
             # re-select piece option 
             else:
-                return 0
+                return None
             
+    # passive move function; returns passive move offset and the color side it was choosen from
         
     def passiveMove(self, color) :
         while(True):
@@ -204,15 +218,23 @@ class GameLogic:
                 
             print("\n"+color+" player's turn:")
             
-            color_side, row_index, col_index = self.passiveMoveSelect(color.lower())
+            color_side, row_index, col_index = self.selectPiece(color.lower())
             
-            option = self.passiveMoveOptions(color_side, row_index, col_index)
+            options = self.legalPassiveMoves(color_side, row_index, col_index)
             
-            if(option != 0):
+            offset = self.passiveMoveOptions(options, color_side, row_index, col_index)
+            
+            if(offset is not None):
                 break
             
-        return option, color_side
+        return offset, color_side
         
+    
+    # =============================================================================
+    #  AGRESSIVE MOVE   
+    # =============================================================================
+    
+    # receives cell coordinates and passive move offset, checks if it's possible; returns True/False
     
     def verifyDirection(self, player_side, color_side, row, col, offset, piece, other_piece):
         
@@ -243,13 +265,11 @@ class GameLogic:
                         return False
                     
         return True
-            
-            
-            
-    
+
+    # receives passive move offset and returns all possible options for the agressive move
+
     def legalAgressiveMoves(self, offset, color_side, color):
-        
-        
+                
         if(color == "Black"):
             piece = "B"
             other_piece = "W"
@@ -257,21 +277,70 @@ class GameLogic:
             piece = "W"
             other_piece = "B"
         
+
         other_color = self.switch_01(color_side)
+    
+        options1 = []
+        options2 = []
     
         for row in range(4):
             for col in range(4):
                 if(self.board.boards[0][other_color][row][col] == piece):
                     if(self.verifyDirection(0, other_color, row, col, offset, piece, other_piece)):
-                        print(row, col)
+                        options1.append([row,col])
                 if(self.board.boards[1][other_color][row][col] == piece):
                     if(self.verifyDirection(1, other_color, row, col, offset, piece, other_piece)):
-                        print(row, col)
-                    
-    
-    def agressiveMode(self, offset, color_side, color):     
-        self.legalAgressiveMoves(offset, color_side, color)
-    
+                        options2.append([row,col])
+        
+        return [options1, options2]
+
+    # displays agressive move options and lets player choose one; returns selected piece (or 0 if player wants to re-select passive move)
+
+    def agressiveMoveOptions(self, color_side, options):
+        print("\nAgressive move options:")
+        print("0: re-select passive move")
+        counter = 1
+        for option in options[0]:
+            print(str(counter)+": "+ str(option[0]+1) + str(self.colIndexToLetter(color_side, option[1])))
+            counter += 1
+            
+        split = counter 
+        
+        for option in options[1]:
+           print(str(counter)+": "+ str(option[0]+5) + str(self.colIndexToLetter(color_side, option[1])))
+           counter += 1
+        
+        while(True) :
+            selected_option = input("Select an option (<option_number>):")
+            parsed_selected_option = self.parseInt(selected_option)
+            
+            if(parsed_selected_option is None or parsed_selected_option < 0 or parsed_selected_option > len(options)):
+                print("INVALID INPUT")
+            
+            # if option selected, return selected cell coords
+            elif(parsed_selected_option != 0):
+                if(parsed_selected_option < split): # if selected option < split, move is in white's homeboards
+                    return options[0][parsed_selected_option-1], 0
+                else: # else, move is in black's homeboards
+                    return options[1][parsed_selected_option-1], 1
+            
+            # re-select passive move 
+            else:
+                return None, None
+
+
+    def agressiveMove(self, offset, color_side, color):     
+        options = self.legalAgressiveMoves(offset, color_side, color)
+        selected, player_side = self.agressiveMoveOptions(color_side, options)
+        if(selected is None):
+            return None # re-select passive Move
+        else:
+            return True
+        
+        
+
+
+
     def turn(self):
         
         if(self.player):
@@ -279,11 +348,12 @@ class GameLogic:
         else: 
             color = 'White'
             
-        offset, color_side = self.passiveMove(color)
-
-        self.agressiveMode(offset, color_side, color)
-        
-        
+        while(True):
+            offset, color_side = self.passiveMove(color)
+            result = self.agressiveMove(offset, color_side, color)
+            if(result is not None):
+                break
+       
     
 
 def main() :
