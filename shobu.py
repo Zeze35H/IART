@@ -59,12 +59,12 @@ class Board:
 class GameLogic:
     def __init__(self):
         self.board = Board()
-        self.player = 1; # white=0, black=1
+        self.player = 1 # white=0, black=1
 
     # BEGIN AUX FUNTIONS
     
-    def nextPlayer(self):
-        return self.player + 1 % 2
+    def switch_01(self, number):
+        return number + 1 % 2
     
     def parseInt(self, x):
         try:
@@ -214,21 +214,59 @@ class GameLogic:
         return option, color_side
         
     
+    def verifyDirection(self, player_side, color_side, row, col, offset, piece, other_piece):
+        
+        if(row + offset[0] not in [0,1,2,3] or col + offset[1] not in [0,1,2,3]):
+            #print(row + offset[0], col + offset[1])
+            return False # out of board move
+        
+        v_dir = 0
+        h_dir = 0
+        
+        if(offset[0] != 0):
+            v_dir = int(offset[0] / abs(offset[0]))
+        if(offset[1] != 0):
+            h_dir = int(offset[1] / abs(offset[1]))
+            
+        n_iter = max(abs(offset[0]),abs(offset[1]))
+        
+        pushing = False
+        
+        for i in range(1, n_iter + 1):
+            if(self.board.boards[player_side][color_side][row + i*v_dir][col + i*h_dir] == piece):
+                return False # cannot push own piece
+            if(self.board.boards[player_side][color_side][row + i*v_dir][col + i*h_dir] == other_piece):
+                pushing = True # found other color piece to push
+            if(pushing): # pushing a piece. Check that the next cell doesnt have a piece (is empty or out of board)
+                if(row + (i+1)*v_dir in [0,1,2,3] and col + (i+1)*h_dir in [0,1,2,3]): # if inside board
+                    if(self.board.boards[player_side][color_side][row + (i+1)*v_dir][col + (i+1)*h_dir] != " "): # if not empty
+                        return False
+                    
+        return True
+            
+            
+            
+    
     def legalAgressiveMoves(self, offset, color_side, color):
         
         
         if(color == "Black"):
             piece = "B"
+            other_piece = "W"
         else:
             piece = "W"
+            other_piece = "B"
         
-        other_color = color_side + 1 % 2
+        other_color = self.switch_01(color_side)
     
-        
         for row in range(4):
             for col in range(4):
                 if(self.board.boards[0][other_color][row][col] == piece):
-                    print("hit")
+                    if(self.verifyDirection(0, other_color, row, col, offset, piece, other_piece)):
+                        print(row, col)
+                if(self.board.boards[1][other_color][row][col] == piece):
+                    if(self.verifyDirection(1, other_color, row, col, offset, piece, other_piece)):
+                        print(row, col)
                     
     
     def agressiveMode(self, offset, color_side, color):     
@@ -242,7 +280,7 @@ class GameLogic:
             color = 'White'
             
         offset, color_side = self.passiveMove(color)
-        print(offset)
+
         self.agressiveMode(offset, color_side, color)
         
         
