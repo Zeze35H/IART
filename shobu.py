@@ -1,9 +1,28 @@
 import copy
+import signal
+import sys
+import time
+
+
+def signal_handler(sig, frame):
+    print('\n\nExiting...')
+    sys.exit(0)
+    
+signal.signal(signal.SIGINT, signal_handler)
+
+
+
+# =============================================================================
+#  CONSTANTS
+# =============================================================================
 
 WHITE_HB = 0 # white player homeboard (cima); has one black board and one white board
 BLACK_HB = 1 # black player homeboard (baixo); has one black board and one white board
 BLACK_BOARD = 0 # black colored boards (left side boards)
 WHITE_BOARD = 1 # white colored boards (right side boards)
+
+
+
 
 class Board:
     def __init__(self):
@@ -67,8 +86,10 @@ class GameLogic:
     #  AUX FUNTIONS
     # =============================================================================
     
+    # 1 - 1 = 0; 1 - 0 = 1
+    
     def switch_01(self, number):
-        return number + 1 % 2
+        return 1 - number 
     
     def parseInt(self, x):
         try:
@@ -77,32 +98,44 @@ class GameLogic:
         except ValueError:
             return None
         
-    def parseInput(self, row, col):
+    def parseInput(self, cell_input):
+        
+        if(len(cell_input) != 2):
+            return None, None, None, None
+
+        row = cell_input[0]
+        col = cell_input[1]
 
         int_row = self.parseInt(row) 
         if(int_row is None or int_row < 1 or int_row > 8):
-            return None, None, None
+            return None, None, None, None
+        
+        if(int_row <= 4):
+            player_side = WHITE_HB 
+        else:
+            player_side = BLACK_HB
+            
         row_index = (int_row - 1) % 4
             
         if(col == 'A' or col == 'a'):
-            return BLACK_BOARD, row_index, 0
+            return player_side, BLACK_BOARD, row_index, 0
         elif(col == 'B' or col == 'b'):
-            return BLACK_BOARD, row_index, 1
+            return player_side, BLACK_BOARD, row_index, 1
         elif(col == 'C' or col == 'c'):
-            return BLACK_BOARD, row_index, 2
+            return player_side, BLACK_BOARD, row_index, 2
         elif(col == 'D' or col == 'd'):
-            return BLACK_BOARD, row_index, 3
+            return player_side, BLACK_BOARD, row_index, 3
         
         elif(col == 'E' or col == 'e'):
-            return WHITE_BOARD, row_index, 0
+            return player_side, WHITE_BOARD, row_index, 0
         elif(col == 'F' or col == 'f'):
-            return WHITE_BOARD, row_index, 1
+            return player_side, WHITE_BOARD, row_index, 1
         elif(col == 'G' or col == 'g'):
-            return WHITE_BOARD, row_index, 2
+            return player_side, WHITE_BOARD, row_index, 2
         elif(col == 'H' or col == 'h'):
-            return WHITE_BOARD, row_index, 3   
+            return player_side, WHITE_BOARD, row_index, 3   
         else:
-            return None, None, None
+            return None, None, None, None
         
     def colIndexToLetter(self,color_side,col_index):
         if(color_side == 0):
@@ -129,7 +162,37 @@ class GameLogic:
                 return None
         else:
             return None
+       
+    def displayArrow(self, arrow, n_arrows):
+        for i in range(n_arrows): 
+            print(arrow, end="") 
+        print("")
         
+    def displayOffset(self, row_offset, col_offset):
+        
+        n_arrows = max(abs(row_offset),abs(col_offset))
+        
+        if(row_offset < 0): # up
+            if(col_offset < 0): # left
+                self.displayArrow("↖", n_arrows)
+            elif(col_offset > 0): # right
+                self.displayArrow("↗", n_arrows)
+            else: #up
+                self.displayArrow("↑", n_arrows)
+        elif(row_offset > 0): # down
+            if(col_offset < 0): # left
+                self.displayArrow("↙", n_arrows)
+            elif(col_offset > 0): # right
+                self.displayArrow("↘", n_arrows)
+            else: #up
+                self.displayArrow("↓", n_arrows)
+        else: # sides
+            if(col_offset < 0): # left
+                self.displayArrow("←", n_arrows)
+            else: # right
+                self.displayArrow("→", n_arrows)
+                
+                
     
     # =============================================================================
     #  PASSIVE MOVE   
@@ -139,19 +202,23 @@ class GameLogic:
     
     def selectPiece(self, color) :     
         while(True):
-            print("\nPassive Move:", end="")
-            row_from, col_from = input("Select a "+color+" piece from your homeboard (<row> <column>): ").split()
-            color_side, row_index, col_index = self.parseInput(row_from, col_from)
+            
+            cell_input = input("Select a "+color+" piece from your homeboard (<row><column>): ")
+            
+            player_side, color_side, row_index, col_index = self.parseInput(cell_input)
             
             if(color_side is None or row_index is None or col_index is None):
                 print("INVALID INPUT")
                 continue
 
-            if((self.player == 0 and self.board.boards[WHITE_HB][color_side][row_index][col_index] == 'W') or
-               (self.player == 1 and self.board.boards[BLACK_HB][color_side][row_index][col_index] == 'B')):          
-                return color_side, row_index, col_index
-            else:
-                print("CHOOSE A PIECE OF YOUR COLOR")
+            if(player_side != self.player):
+                print("CHOOSE A PIECE FROM ONE OF YOUR HOMEBOARDS")
+            else:       
+                if((self.player == 0 and self.board.boards[WHITE_HB][color_side][row_index][col_index] == 'W') or
+                   (self.player == 1 and self.board.boards[BLACK_HB][color_side][row_index][col_index] == 'B')):          
+                    return color_side, row_index, col_index
+                else:
+                    print("CHOOSE A PIECE OF YOUR COLOR")
 
 
     # displays board with an 'x' in the available passive move options; returns options
@@ -169,10 +236,21 @@ class GameLogic:
                  if(j < 0 or j > 3): 
                      continue
                  
-                 # efeito asterisco
+                 # skips any cell that doesnt satisfy an * format
                  if(((i == row_index - 2 or i == row_index + 2) and (j == col_index - 1 or j == col_index + 1)) or 
                     (((i == row_index - 1 or i == row_index + 1) and (j == col_index - 2 or j == col_index + 2)))):
                      continue
+                 
+                    
+                 # skips options that need to jump over pieces
+                 if(i == row_index - 2 or i == row_index + 2 or 
+                    j == col_index - 2 or j == col_index + 2):
+                     middle_i = int((row_index + i)/2)
+                     middle_j = int((col_index + j)/2)
+                     print(middle_i, middle_j, self.board.boards[self.player][color_side][middle_i][middle_j])
+                     if(self.board.boards[self.player][color_side][middle_i][middle_j] != ' '):
+                         continue;
+                     
                  
                  if(self.board.boards[self.player][color_side][i][j] == ' '):
                      aux_board.boards[self.player][color_side][i][j] = 'x'
@@ -222,7 +300,9 @@ class GameLogic:
             
             self.board.display()
                 
-            print("\n"+color+" player's turn:")
+            print("\n> > "+color+" player's turn:")
+            
+            print("\n> Passive Move:")
             
             color_side, row_index, col_index = self.selectPiece(color.lower())
             
@@ -274,18 +354,8 @@ class GameLogic:
 
     # receives passive move offset and returns all possible options for the agressive move
 
-    def legalAgressiveMoves(self, offset, color_side, color):
-                
-        if(color == "Black"):
-            piece = "B"
-            other_piece = "W"
-        else:
-            piece = "W"
-            other_piece = "B"
-        
+    def legalAgressiveMoves(self, offset, other_color, piece, other_piece):
 
-        other_color = self.switch_01(color_side)
-    
         options1 = []
         options2 = []
     
@@ -303,7 +373,14 @@ class GameLogic:
     # displays agressive move options and lets player choose one; returns selected piece (or 0 if player wants to re-select passive move)
 
     def agressiveMoveOptions(self, color_side, options):
+        
         print("\nAgressive move options:")
+        
+        if(options == [[],[]]):
+            print("\nNo valid agressive moves. Please select a new passive move.")
+            time.sleep(3)
+            return None, None
+        
         print("0: re-select passive move")
         counter = 1
         for option in options[0]:
@@ -336,44 +413,143 @@ class GameLogic:
 
     # agressive move function; returns agressive selected piece and the color side it was choosen from
 
-    def agressiveMove(self, offset, color_side, color):     
-        options = self.legalAgressiveMoves(offset, color_side, color)
-        selected, player_side = self.agressiveMoveOptions(color_side, options)
+    def agressiveMove(self, offset, other_color, piece, other_piece):    
+        
+        print("\n> Agressive Move:")
+        
+        print("\nSelected movement: ", end="")
+        self.displayOffset(offset[0], offset[1])
+        
+        options = self.legalAgressiveMoves(offset, other_color, piece, other_piece)
+        selected, player_side = self.agressiveMoveOptions(other_color, options)
 
         if(selected is None):
             return None, None # re-select passive Move
         else:
             return selected, player_side
         
-    # receives selected passive and agressive pieces, and the move offset
+    # receives selected passive and agressive pieces, the move offset and the player and enemy player's pieces; returns True if an enemy piece was pushed out of the board, else False
         
-    def updateBoard(self, passive_piece, agressive_piece, offset):
-        print(passive_piece, agressive_piece, offset)
+    def updateBoard(self, passive_piece, agressive_piece, offset, piece, other_piece):
+
+        self.board.boards[passive_piece[0]][passive_piece[1]][passive_piece[2]][passive_piece[3]] = ' '
+        self.board.boards[passive_piece[0]][passive_piece[1]][passive_piece[2] + offset[0] ][passive_piece[3] + offset[1] ] = piece
+
+        self.board.boards[agressive_piece[0]][agressive_piece[1]][agressive_piece[2]][agressive_piece[3]] = ' '
+
+        v_dir = 0
+        h_dir = 0
+        
+        if(offset[0] != 0):
+            v_dir = int(offset[0] / abs(offset[0]))
+        if(offset[1] != 0):
+            h_dir = int(offset[1] / abs(offset[1]))
+            
+        n_iter = max(abs(offset[0]),abs(offset[1]))
+        
+        pushing = False
+        
+        for i in range(1, n_iter + 1):
+            if(self.board.boards[agressive_piece[0]][agressive_piece[1]][agressive_piece[2] + i*v_dir][agressive_piece[3] + i*h_dir] == other_piece):
+                pushing = True # is pushing other color piece
+            if(i == n_iter): # if in last cell of the offset, place the piece
+                self.board.boards[agressive_piece[0]][agressive_piece[1]][agressive_piece[2] + i*v_dir][agressive_piece[3] + i*h_dir] = piece
+            else: # else, clean the path
+                self.board.boards[agressive_piece[0]][agressive_piece[1]][agressive_piece[2] + i*v_dir][agressive_piece[3] + i*h_dir] = ' '
+            
+                    
+        if(pushing): # if there's enemy piece to be pushed
+            if(agressive_piece[2] + offset[0] + v_dir in [0,1,2,3] and  agressive_piece[3] + offset[1] + h_dir in [0,1,2,3]): # if destiny location is in board, update it
+                self.board.boards[agressive_piece[0]][agressive_piece[1]][agressive_piece[2] + offset[0] + v_dir][agressive_piece[3] + offset[1] + h_dir] = other_piece
+            else:
+                return True # enemy piece was pushed out of board => check for winners
+        
+        return False # no enemy piece was pushed out of the board => no need to check for winners
+
+
+
+    # calls passive and agressive move functions; returns True if an enemy piece was pushed out of the board, else False
 
     def turn(self):
         
+        
         if(self.player):
             color = 'Black'
+            piece = "B"
+            other_piece = "W"
         else: 
             color = 'White'
+            piece = "W"
+            other_piece = "B"
+            
             
         while(True):
             offset, color_side, passive_selected = self.passiveMove(color)
-            agressive_selected, player_side = self.agressiveMove(offset, color_side, color)
+            
+            other_color = self.switch_01(color_side)
+            
+            agressive_selected, player_side = self.agressiveMove(offset, other_color, piece, other_piece)
            
             if(agressive_selected is not None and player_side is not None):
                 break
             
         
-        self.updateBoard([self.player, color_side, passive_selected[0], passive_selected[1]],
-                         [player_side, self.switch_01(color_side), agressive_selected[0], agressive_selected[1]],
-                         offset)
+        return self.updateBoard([self.player, color_side, passive_selected[0], passive_selected[1]],
+                         [player_side, other_color, agressive_selected[0], agressive_selected[1]],
+                         offset, piece, other_piece)
         
-        # passive: self.player color_side passive_selected
-        # passive: player_side calc:other_color_side agressive_selected
+    
+    # checks for a winner in a board; if winner, returns the winning color, else false
+    
+    def isThereWinnerInBoard(self, i, j):
+        
+        whites = 0
+        blacks = 0  
+        for row in range(4):
+            for col in range(4):
+                if(self.board.boards[i][j][row][col] == 'W'): # found a white piece
+                    whites += 1
+                elif(self.board.boards[i][j][row][col] == 'B'): # found a black piece
+                    blacks += 1
+                if(whites != 0 and blacks != 0): # board with both pieces, no winner on this board
+                    return False
+        
+        # if function reaches here, there is a winner
+        if(whites != 0):
+            return "WHITE"
+        else:
+            return "BLACK"
+
+
+    # checks for a winner in all boards
+
+    def isThereWinner(self):
+        for i in range(2):
+            for j in range(2):
+                 winner = self.isThereWinnerInBoard(i, j)
+                 if(winner):
+                     return winner
+        return False
+        
+                            
+
+    def run(self):
+        while(True):
+            if(self.turn()):
+                winner = self.isThereWinner()
+                if(winner):
+                    break
+            self.player = self.switch_01(self.player)        
+            print("\n=====================================================================")
+            
+        
+        print("\n=====================================================================")
+        self.board.display()
+        
+        print("\nGAME OVER! WINNER IS: " + winner)
 
 def main() :
     game = GameLogic()
-    game.turn()
+    game.run()
     
 main()
