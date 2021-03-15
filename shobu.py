@@ -188,8 +188,14 @@ class GameLogic:
         print("\nPassive move options:")
         print("0: re-select piece")
         counter = 1
+        
+        if(self.player): # black player => black homeboard => row in [5,6,7,8]
+            board_offset = 5
+        else: # white player => white homeboard => row in [1,2,3,4]
+            board_offset = 1
+        
         for option in options:
-            print(str(counter)+": "+ str(option[0]+1) + str(self.colIndexToLetter(color_side, option[1])))
+            print(str(counter)+": "+ str(option[0]+board_offset) + str(self.colIndexToLetter(color_side, option[1])))
             counter += 1
          
         while(True) :
@@ -209,7 +215,7 @@ class GameLogic:
             else:
                 return None
             
-    # passive move function; returns passive move offset and the color side it was choosen from
+    # passive move function; returns passive selected piece, the move offset and the color side it was choosen from
         
     def passiveMove(self, color) :
         while(True):
@@ -227,7 +233,7 @@ class GameLogic:
             if(offset is not None):
                 break
             
-        return offset, color_side
+        return offset, color_side, [row_index, col_index]
         
     
     # =============================================================================
@@ -314,7 +320,7 @@ class GameLogic:
             selected_option = input("Select an option (<option_number>):")
             parsed_selected_option = self.parseInt(selected_option)
             
-            if(parsed_selected_option is None or parsed_selected_option < 0 or parsed_selected_option > len(options)):
+            if(parsed_selected_option is None or parsed_selected_option < 0 or parsed_selected_option > (len(options[0]) + len(options[1])) ):
                 print("INVALID INPUT")
             
             # if option selected, return selected cell coords
@@ -322,24 +328,27 @@ class GameLogic:
                 if(parsed_selected_option < split): # if selected option < split, move is in white's homeboards
                     return options[0][parsed_selected_option-1], 0
                 else: # else, move is in black's homeboards
-                    return options[1][parsed_selected_option-1], 1
+                    return options[1][parsed_selected_option-split], 1
             
             # re-select passive move 
             else:
                 return None, None
 
+    # agressive move function; returns agressive selected piece and the color side it was choosen from
 
     def agressiveMove(self, offset, color_side, color):     
         options = self.legalAgressiveMoves(offset, color_side, color)
         selected, player_side = self.agressiveMoveOptions(color_side, options)
+
         if(selected is None):
-            return None # re-select passive Move
+            return None, None # re-select passive Move
         else:
-            return True
+            return selected, player_side
         
+    # receives selected passive and agressive pieces, and the move offset
         
-
-
+    def updateBoard(self, passive_piece, agressive_piece, offset):
+        print(passive_piece, agressive_piece, offset)
 
     def turn(self):
         
@@ -349,12 +358,19 @@ class GameLogic:
             color = 'White'
             
         while(True):
-            offset, color_side = self.passiveMove(color)
-            result = self.agressiveMove(offset, color_side, color)
-            if(result is not None):
+            offset, color_side, passive_selected = self.passiveMove(color)
+            agressive_selected, player_side = self.agressiveMove(offset, color_side, color)
+           
+            if(agressive_selected is not None and player_side is not None):
                 break
-       
-    
+            
+        
+        self.updateBoard([self.player, color_side, passive_selected[0], passive_selected[1]],
+                         [player_side, self.switch_01(color_side), agressive_selected[0], agressive_selected[1]],
+                         offset)
+        
+        # passive: self.player color_side passive_selected
+        # passive: player_side calc:other_color_side agressive_selected
 
 def main() :
     game = GameLogic()
