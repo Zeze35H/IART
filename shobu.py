@@ -7,116 +7,116 @@ import time
 def signal_handler(sig, frame):
     print('\n\nExiting...')
     sys.exit(0)
-    
-signal.signal(signal.SIGINT, signal_handler)
 
+
+signal.signal(signal.SIGINT, signal_handler)
 
 
 # =============================================================================
 #  CONSTANTS
 # =============================================================================
 
-WHITE_HB = 0 # white player homeboard (cima); has one black board and one white board
-BLACK_HB = 1 # black player homeboard (baixo); has one black board and one white board
-BLACK_BOARD = 0 # black colored boards (left side boards)
-WHITE_BOARD = 1 # white colored boards (right side boards)
-
-
+# white player homeboard (cima); has one black board and one white board
+WHITE_HB = 0
+# black player homeboard (baixo); has one black board and one white board
+BLACK_HB = 1
+BLACK_BOARD = 0  # black colored boards (left side boards)
+WHITE_BOARD = 1  # white colored boards (right side boards)
 
 
 class Board:
     def __init__(self):
-        self.boards = [[[['W','W','W','W'],
-                         [' ',' ',' ',' '],
-                         [' ',' ',' ',' '],
-                         ['B','B','B','B']], 
-                        
-                        [['W','W','W','W'],
-                         [' ',' ',' ',' '],
-                         [' ',' ',' ',' '],
-                         ['B','B','B','B']]],
-                       
-                       [[['W','W','W','W'],
-                         [' ',' ',' ',' '],
-                         [' ',' ',' ',' '],
-                         ['B','B','B','B']], 
-                        
-                        [['W','W','W','W'],
-                         [' ',' ',' ',' '],
-                         [' ',' ',' ',' '],
-                         ['B','B','B','B']]]] 
-        
+        self.boards = [[[['W', 'W', 'W', 'W'],
+                         [' ', ' ', ' ', ' '],
+                         [' ', ' ', ' ', ' '],
+                         ['B', 'B', 'B', 'B']],
+
+                        [['W', 'W', 'W', 'W'],
+                         [' ', ' ', ' ', ' '],
+                         [' ', ' ', ' ', ' '],
+                         ['B', 'B', 'B', 'B']]],
+
+                       [[['W', 'W', 'W', 'W'],
+                         [' ', ' ', ' ', ' '],
+                         [' ', ' ', ' ', ' '],
+                         ['B', 'B', 'B', 'B']],
+
+                        [['W', 'W', 'W', 'W'],
+                         [' ', ' ', ' ', ' '],
+                         [' ', ' ', ' ', ' '],
+                         ['B', 'B', 'B', 'B']]]]
+
     def displayHomeboard(self, color, color_string, row_number):
-        
-        
+
         print("   _______________________  |  _______________________ ")
-        
+
         for row in range(4):
             print("  |     |     |     |     | | |     |     |     |     |")
-            print(row_number, end=" ") # row label
-            
-            for black_cell in range(4): # print row from black board
-                print("|  " + self.boards[color][BLACK_BOARD][row][black_cell] + "  ", end="")
+            print(row_number, end=" ")  # row label
+
+            for black_cell in range(4):  # print row from black board
+                print("|  " + self.boards[color][BLACK_BOARD]
+                      [row][black_cell] + "  ", end="")
             print("| | ", end="")
-            for white_cell in range(4): # print row from white board
-                print("|  " + self.boards[color][WHITE_BOARD][row][white_cell] + "  ", end="")
-                
+            for white_cell in range(4):  # print row from white board
+                print("|  " + self.boards[color][WHITE_BOARD]
+                      [row][white_cell] + "  ", end="")
+
             print("|\n  |_____|_____|_____|_____| | |_____|_____|_____|_____|", end="")
             if(row == 1):
                 print("   " + color_string + "'s Homeboards", end="")
             print("")
-            
+
             row_number += 1
-    
-    
+
     def display(self):
         print("\n         Black Boards               White Boards      ")
         print("\n     A     B     C     D    |    E     F     G     H")
         self.displayHomeboard(WHITE_HB, "White", 1)
         print(" ___________________________|__________________________")
         self.displayHomeboard(BLACK_HB, "Black", 5)
-        
+
 
 class GameLogic:
     def __init__(self):
         self.board = Board()
-        self.player = 1 # white=0, black=1
+        self.player = 1  # white=0, black=1
 
     # =============================================================================
     #  AUX FUNTIONS
     # =============================================================================
-    
+
     # 1 - 1 = 0; 1 - 0 = 1
-    
+
     def switch_01(self, number):
-        return 1 - number 
-    
+        return 1 - number
+
     def parseInt(self, x):
         try:
             int_x = int(x)
             return int_x
         except ValueError:
             return None
-        
+
     def parseInput(self, cell_input):
-        
+
         if(len(cell_input) != 2):
             return None, None, None, None
 
         row = cell_input[0]
         col = cell_input[1]
 
-        int_row = self.parseInt(row) 
+        int_row = self.parseInt(row)
         if(int_row is None or int_row < 1 or int_row > 8):
             return None, None, None, None
-        
+
         if(int_row <= 4):
-            player_side = WHITE_HB 
+            player_side = WHITE_HB
         else:
             player_side = BLACK_HB
-            
+
         row_index = (int_row - 1) % 4
-            
+
         if(col == 'A' or col == 'a'):
             return player_side, BLACK_BOARD, row_index, 0
         elif(col == 'B' or col == 'b'):
@@ -125,7 +125,7 @@ class GameLogic:
             return player_side, BLACK_BOARD, row_index, 2
         elif(col == 'D' or col == 'd'):
             return player_side, BLACK_BOARD, row_index, 3
-        
+
         elif(col == 'E' or col == 'e'):
             return player_side, WHITE_BOARD, row_index, 0
         elif(col == 'F' or col == 'f'):
@@ -133,11 +133,11 @@ class GameLogic:
         elif(col == 'G' or col == 'g'):
             return player_side, WHITE_BOARD, row_index, 2
         elif(col == 'H' or col == 'h'):
-            return player_side, WHITE_BOARD, row_index, 3   
+            return player_side, WHITE_BOARD, row_index, 3
         else:
             return None, None, None, None
-        
-    def colIndexToLetter(self,color_side,col_index):
+
+    def colIndexToLetter(self, color_side, col_index):
         if(color_side == 0):
             if(col_index == 0):
                 return 'A'
@@ -162,194 +162,195 @@ class GameLogic:
                 return None
         else:
             return None
-       
+
     def displayArrow(self, arrow, n_arrows):
-        for i in range(n_arrows): 
-            print(arrow, end="") 
+        for i in range(n_arrows):
+            print(arrow, end="")
         print("")
-        
+
     def displayOffset(self, row_offset, col_offset):
-        
-        n_arrows = max(abs(row_offset),abs(col_offset))
-        
-        if(row_offset < 0): # up
-            if(col_offset < 0): # left
+
+        n_arrows = max(abs(row_offset), abs(col_offset))
+
+        if(row_offset < 0):  # up
+            if(col_offset < 0):  # left
                 self.displayArrow("↖", n_arrows)
-            elif(col_offset > 0): # right
+            elif(col_offset > 0):  # right
                 self.displayArrow("↗", n_arrows)
-            else: #up
+            else:  # up
                 self.displayArrow("↑", n_arrows)
-        elif(row_offset > 0): # down
-            if(col_offset < 0): # left
+        elif(row_offset > 0):  # down
+            if(col_offset < 0):  # left
                 self.displayArrow("↙", n_arrows)
-            elif(col_offset > 0): # right
+            elif(col_offset > 0):  # right
                 self.displayArrow("↘", n_arrows)
-            else: #up
+            else:  # up
                 self.displayArrow("↓", n_arrows)
-        else: # sides
-            if(col_offset < 0): # left
+        else:  # sides
+            if(col_offset < 0):  # left
                 self.displayArrow("←", n_arrows)
-            else: # right
+            else:  # right
                 self.displayArrow("→", n_arrows)
-                
-                
-    
+
     # =============================================================================
-    #  PASSIVE MOVE   
+    #  PASSIVE MOVE
     # =============================================================================
-    
+
     # receives input from user to select desired piece; returns piece coordinates
-    
-    def selectPiece(self, color) :     
+
+    def selectPiece(self, color):
         while(True):
-            
-            cell_input = input("Select a "+color+" piece from your homeboard (<row><column>): ")
-            
-            player_side, color_side, row_index, col_index = self.parseInput(cell_input)
-            
+
+            cell_input = input("Select a "+color +
+                               " piece from your homeboard (<row><column>): ")
+
+            player_side, color_side, row_index, col_index = self.parseInput(
+                cell_input)
+
             if(color_side is None or row_index is None or col_index is None):
                 print("INVALID INPUT")
                 continue
 
             if(player_side != self.player):
                 print("CHOOSE A PIECE FROM ONE OF YOUR HOMEBOARDS")
-            else:       
+            else:
                 if((self.player == 0 and self.board.boards[WHITE_HB][color_side][row_index][col_index] == 'W') or
-                   (self.player == 1 and self.board.boards[BLACK_HB][color_side][row_index][col_index] == 'B')):          
+                   (self.player == 1 and self.board.boards[BLACK_HB][color_side][row_index][col_index] == 'B')):
                     return color_side, row_index, col_index
                 else:
                     print("CHOOSE A PIECE OF YOUR COLOR")
 
-
     # displays board with an 'x' in the available passive move options; returns options
-        
+
     def legalPassiveMoves(self, color_side, row_index, col_index):
-        
+
         aux_board = Board()
         aux_board.boards = copy.deepcopy(self.board.boards)
         options = []
-        
-        for i in range(row_index - 2, row_index + 3): #2 rows behind, 2 rows ahead
-             if(i < 0 or i > 3): 
-                 continue
-             for j in range(col_index - 2, col_index + 3): #2 cols behind, 2 cols ahead
-                 if(j < 0 or j > 3): 
-                     continue
-                 
-                 # skips any cell that doesnt satisfy an * format
-                 if(((i == row_index - 2 or i == row_index + 2) and (j == col_index - 1 or j == col_index + 1)) or 
-                    (((i == row_index - 1 or i == row_index + 1) and (j == col_index - 2 or j == col_index + 2)))):
-                     continue
-                 
-                    
-                 # skips options that need to jump over pieces
-                 if(i == row_index - 2 or i == row_index + 2 or 
-                    j == col_index - 2 or j == col_index + 2):
-                     middle_i = int((row_index + i)/2)
-                     middle_j = int((col_index + j)/2)
-                     print(middle_i, middle_j, self.board.boards[self.player][color_side][middle_i][middle_j])
-                     if(self.board.boards[self.player][color_side][middle_i][middle_j] != ' '):
-                         continue;
-                     
-                 
-                 if(self.board.boards[self.player][color_side][i][j] == ' '):
-                     aux_board.boards[self.player][color_side][i][j] = 'x'
-                     options.append([i,j])
-        
+
+        for i in range(row_index - 2, row_index + 3):  # 2 rows behind, 2 rows ahead
+            if(i < 0 or i > 3):
+                continue
+            for j in range(col_index - 2, col_index + 3):  # 2 cols behind, 2 cols ahead
+                if(j < 0 or j > 3):
+                    continue
+
+                # skips any cell that doesnt satisfy an * format
+                if(((i == row_index - 2 or i == row_index + 2) and (j == col_index - 1 or j == col_index + 1)) or
+                   (((i == row_index - 1 or i == row_index + 1) and (j == col_index - 2 or j == col_index + 2)))):
+                    continue
+
+                # skips options that need to jump over pieces
+                if(i == row_index - 2 or i == row_index + 2 or
+                   j == col_index - 2 or j == col_index + 2):
+                    middle_i = int((row_index + i)/2)
+                    middle_j = int((col_index + j)/2)
+                    print(
+                        middle_i, middle_j, self.board.boards[self.player][color_side][middle_i][middle_j])
+                    if(self.board.boards[self.player][color_side][middle_i][middle_j] != ' '):
+                        continue
+
+                if(self.board.boards[self.player][color_side][i][j] == ' '):
+                    aux_board.boards[self.player][color_side][i][j] = 'x'
+                    options.append([i, j])
+
         aux_board.display()
-        
+
         return options
-    
+
     # displays passive move options, lets user select desired one; returns desired move offset from piece cell (or 0 if player wants to re-select piece option)
     def passiveMoveOptions(self, options, color_side, row_index, col_index):
-                
+
         print("\nPassive move options:")
         print("0: re-select piece")
         counter = 1
-        
-        if(self.player): # black player => black homeboard => row in [5,6,7,8]
+
+        if(self.player):  # black player => black homeboard => row in [5,6,7,8]
             board_offset = 5
-        else: # white player => white homeboard => row in [1,2,3,4]
+        else:  # white player => white homeboard => row in [1,2,3,4]
             board_offset = 1
-        
+
         for option in options:
-            print(str(counter)+": "+ str(option[0]+board_offset) + str(self.colIndexToLetter(color_side, option[1])))
+            print(str(counter)+": " + str(option[0]+board_offset) +
+                  str(self.colIndexToLetter(color_side, option[1])))
             counter += 1
-         
-        while(True) :
+
+        while(True):
             selected_option = input("Select an option (<option_number>):")
             parsed_selected_option = self.parseInt(selected_option)
-            
+
             if(parsed_selected_option is None or parsed_selected_option < 0 or parsed_selected_option > len(options)):
                 print("INVALID INPUT")
-            
+
             # if option selected, return [row_offset, col_offset]
-            elif(parsed_selected_option != 0): 
+            elif(parsed_selected_option != 0):
                 target_row = options[parsed_selected_option-1][0]
                 target_col = options[parsed_selected_option-1][1]
-                return [target_row-row_index,target_col-col_index]
-            
-            # re-select piece option 
+                return [target_row-row_index, target_col-col_index]
+
+            # re-select piece option
             else:
                 return None
-            
+
     # passive move function; returns passive selected piece, the move offset and the color side it was choosen from
-        
-    def passiveMove(self, color) :
+
+    def passiveMove(self, color):
         while(True):
-            
+
             self.board.display()
-                
+
             print("\n> > "+color+" player's turn:")
-            
+
             print("\n> Passive Move:")
-            
+
             color_side, row_index, col_index = self.selectPiece(color.lower())
-            
+
             options = self.legalPassiveMoves(color_side, row_index, col_index)
-            
-            offset = self.passiveMoveOptions(options, color_side, row_index, col_index)
-            
+
+            offset = self.passiveMoveOptions(
+                options, color_side, row_index, col_index)
+
             if(offset is not None):
                 break
-            
+
         return offset, color_side, [row_index, col_index]
-        
-    
+
     # =============================================================================
-    #  AGRESSIVE MOVE   
+    #  AGRESSIVE MOVE
     # =============================================================================
-    
+
     # receives cell coordinates and passive move offset, checks if it's possible; returns True/False
-    
+
     def verifyDirection(self, player_side, color_side, row, col, offset, piece, other_piece):
-        
-        if(row + offset[0] not in [0,1,2,3] or col + offset[1] not in [0,1,2,3]):
+
+        if(row + offset[0] not in [0, 1, 2, 3] or col + offset[1] not in [0, 1, 2, 3]):
             #print(row + offset[0], col + offset[1])
-            return False # out of board move
-        
+            return False  # out of board move
+
         v_dir = 0
         h_dir = 0
-        
+
         if(offset[0] != 0):
             v_dir = int(offset[0] / abs(offset[0]))
         if(offset[1] != 0):
             h_dir = int(offset[1] / abs(offset[1]))
-            
-        n_iter = max(abs(offset[0]),abs(offset[1]))
-        
+
+        n_iter = max(abs(offset[0]), abs(offset[1]))
+
         pushing = False
-        
+
         for i in range(1, n_iter + 1):
             if(self.board.boards[player_side][color_side][row + i*v_dir][col + i*h_dir] == piece):
-                return False # cannot push own piece
+                return False  # cannot push own piece
             if(self.board.boards[player_side][color_side][row + i*v_dir][col + i*h_dir] == other_piece):
-                pushing = True # found other color piece to push
-            if(pushing): # pushing a piece. Check that the next cell doesnt have a piece (is empty or out of board)
-                if(row + (i+1)*v_dir in [0,1,2,3] and col + (i+1)*h_dir in [0,1,2,3]): # if inside board
-                    if(self.board.boards[player_side][color_side][row + (i+1)*v_dir][col + (i+1)*h_dir] != " "): # if not empty
+                pushing = True  # found other color piece to push
+            if(pushing):  # pushing a piece. Check that the next cell doesnt have a piece (is empty or out of board)
+                # if inside board
+                if(row + (i+1)*v_dir in [0, 1, 2, 3] and col + (i+1)*h_dir in [0, 1, 2, 3]):
+                    # if not empty
+                    if(self.board.boards[player_side][color_side][row + (i+1)*v_dir][col + (i+1)*h_dir] != " "):
                         return False
-                    
+
         return True
 
     # receives passive move offset and returns all possible options for the agressive move
@@ -358,180 +359,205 @@ class GameLogic:
 
         options1 = []
         options2 = []
-    
+
         for row in range(4):
             for col in range(4):
                 if(self.board.boards[0][other_color][row][col] == piece):
                     if(self.verifyDirection(0, other_color, row, col, offset, piece, other_piece)):
-                        options1.append([row,col])
+                        options1.append([row, col])
                 if(self.board.boards[1][other_color][row][col] == piece):
                     if(self.verifyDirection(1, other_color, row, col, offset, piece, other_piece)):
-                        options2.append([row,col])
-        
+                        options2.append([row, col])
+
         return [options1, options2]
 
     # displays agressive move options and lets player choose one; returns selected piece (or 0 if player wants to re-select passive move)
 
     def agressiveMoveOptions(self, color_side, options):
-        
+
         print("\nAgressive move options:")
-        
-        if(options == [[],[]]):
+
+        if(options == [[], []]):
             print("\nNo valid agressive moves. Please select a new passive move.")
             time.sleep(3)
             return None, None
-        
+
         print("0: re-select passive move")
         counter = 1
         for option in options[0]:
-            print(str(counter)+": "+ str(option[0]+1) + str(self.colIndexToLetter(color_side, option[1])))
+            print(str(counter)+": " +
+                  str(option[0]+1) + str(self.colIndexToLetter(color_side, option[1])))
             counter += 1
-            
-        split = counter 
-        
+
+        split = counter
+
         for option in options[1]:
-           print(str(counter)+": "+ str(option[0]+5) + str(self.colIndexToLetter(color_side, option[1])))
-           counter += 1
-        
-        while(True) :
+            print(str(counter)+": " +
+                  str(option[0]+5) + str(self.colIndexToLetter(color_side, option[1])))
+            counter += 1
+
+        while(True):
             selected_option = input("Select an option (<option_number>):")
             parsed_selected_option = self.parseInt(selected_option)
-            
-            if(parsed_selected_option is None or parsed_selected_option < 0 or parsed_selected_option > (len(options[0]) + len(options[1])) ):
+
+            if(parsed_selected_option is None or parsed_selected_option < 0 or parsed_selected_option > (len(options[0]) + len(options[1]))):
                 print("INVALID INPUT")
-            
+
             # if option selected, return selected cell coords
             elif(parsed_selected_option != 0):
-                if(parsed_selected_option < split): # if selected option < split, move is in white's homeboards
+                # if selected option < split, move is in white's homeboards
+                if(parsed_selected_option < split):
                     return options[0][parsed_selected_option-1], 0
-                else: # else, move is in black's homeboards
+                else:  # else, move is in black's homeboards
                     return options[1][parsed_selected_option-split], 1
-            
-            # re-select passive move 
+
+            # re-select passive move
             else:
                 return None, None
 
     # agressive move function; returns agressive selected piece and the color side it was choosen from
 
-    def agressiveMove(self, offset, other_color, piece, other_piece):    
-        
+    def agressiveMove(self, offset, other_color, piece, other_piece):
+
         print("\n> Agressive Move:")
-        
+
         print("\nSelected movement: ", end="")
         self.displayOffset(offset[0], offset[1])
-        
-        options = self.legalAgressiveMoves(offset, other_color, piece, other_piece)
+
+        options = self.legalAgressiveMoves(
+            offset, other_color, piece, other_piece)
         selected, player_side = self.agressiveMoveOptions(other_color, options)
 
         if(selected is None):
-            return None, None # re-select passive Move
+            return None, None  # re-select passive Move
         else:
             return selected, player_side
-        
+
     # receives selected passive and agressive pieces, the move offset and the player and enemy player's pieces; returns True if an enemy piece was pushed out of the board, else False
-        
+
     def updateBoard(self, passive_piece, agressive_piece, offset, piece, other_piece):
 
-        self.board.boards[passive_piece[0]][passive_piece[1]][passive_piece[2]][passive_piece[3]] = ' '
-        self.board.boards[passive_piece[0]][passive_piece[1]][passive_piece[2] + offset[0] ][passive_piece[3] + offset[1] ] = piece
+        self.board.boards[passive_piece[0]][passive_piece[1]
+                                            ][passive_piece[2]][passive_piece[3]] = ' '
+        self.board.boards[passive_piece[0]][passive_piece[1]
+                                            ][passive_piece[2] + offset[0]][passive_piece[3] + offset[1]] = piece
 
-        self.board.boards[agressive_piece[0]][agressive_piece[1]][agressive_piece[2]][agressive_piece[3]] = ' '
+        self.board.boards[agressive_piece[0]][agressive_piece[1]
+                                              ][agressive_piece[2]][agressive_piece[3]] = ' '
 
         v_dir = 0
         h_dir = 0
-        
+
         if(offset[0] != 0):
             v_dir = int(offset[0] / abs(offset[0]))
         if(offset[1] != 0):
             h_dir = int(offset[1] / abs(offset[1]))
-            
-        n_iter = max(abs(offset[0]),abs(offset[1]))
-        
+
+        n_iter = max(abs(offset[0]), abs(offset[1]))
+
         pushing = False
-        
+
         for i in range(1, n_iter + 1):
             if(self.board.boards[agressive_piece[0]][agressive_piece[1]][agressive_piece[2] + i*v_dir][agressive_piece[3] + i*h_dir] == other_piece):
-                pushing = True # is pushing other color piece
-            if(i == n_iter): # if in last cell of the offset, place the piece
-                self.board.boards[agressive_piece[0]][agressive_piece[1]][agressive_piece[2] + i*v_dir][agressive_piece[3] + i*h_dir] = piece
-            else: # else, clean the path
-                self.board.boards[agressive_piece[0]][agressive_piece[1]][agressive_piece[2] + i*v_dir][agressive_piece[3] + i*h_dir] = ' '
-            
-                    
-        if(pushing): # if there's enemy piece to be pushed
-            if(agressive_piece[2] + offset[0] + v_dir in [0,1,2,3] and  agressive_piece[3] + offset[1] + h_dir in [0,1,2,3]): # if destiny location is in board, update it
-                self.board.boards[agressive_piece[0]][agressive_piece[1]][agressive_piece[2] + offset[0] + v_dir][agressive_piece[3] + offset[1] + h_dir] = other_piece
+                pushing = True  # is pushing other color piece
+            if(i == n_iter):  # if in last cell of the offset, place the piece
+                self.board.boards[agressive_piece[0]][agressive_piece[1]
+                                                      ][agressive_piece[2] + i*v_dir][agressive_piece[3] + i*h_dir] = piece
+            else:  # else, clean the path
+                self.board.boards[agressive_piece[0]][agressive_piece[1]
+                                                      ][agressive_piece[2] + i*v_dir][agressive_piece[3] + i*h_dir] = ' '
+
+        if(pushing):  # if there's enemy piece to be pushed
+            # if destiny location is in board, update it
+            if(agressive_piece[2] + offset[0] + v_dir in [0, 1, 2, 3] and agressive_piece[3] + offset[1] + h_dir in [0, 1, 2, 3]):
+                self.board.boards[agressive_piece[0]][agressive_piece[1]][agressive_piece[2] +
+                                                                          offset[0] + v_dir][agressive_piece[3] + offset[1] + h_dir] = other_piece
             else:
-                return True # enemy piece was pushed out of board => check for winners
-        
-        return False # no enemy piece was pushed out of the board => no need to check for winners
+                return True  # enemy piece was pushed out of board => check for winners
 
-
+        return False  # no enemy piece was pushed out of the board => no need to check for winners
 
     # calls passive and agressive move functions; returns True if an enemy piece was pushed out of the board, else False
 
     def turn(self):
-        
-        
+
         if(self.player):
             color = 'Black'
             piece = "B"
             other_piece = "W"
-        else: 
+        else:
             color = 'White'
             piece = "W"
             other_piece = "B"
-            
-            
+
         while(True):
             offset, color_side, passive_selected = self.passiveMove(color)
-            
+
             other_color = self.switch_01(color_side)
-            
-            agressive_selected, player_side = self.agressiveMove(offset, other_color, piece, other_piece)
-           
+
+            agressive_selected, player_side = self.agressiveMove(
+                offset, other_color, piece, other_piece)
+
             if(agressive_selected is not None and player_side is not None):
                 break
-            
-        
+
         return self.updateBoard([self.player, color_side, passive_selected[0], passive_selected[1]],
-                         [player_side, other_color, agressive_selected[0], agressive_selected[1]],
-                         offset, piece, other_piece)
-        
-    
+                                [player_side, other_color,
+                                    agressive_selected[0], agressive_selected[1]],
+                                offset, piece, other_piece)
+
     # checks for a winner in a board; if winner, returns the winning color, else false
-    
+
     def isThereWinnerInBoard(self, i, j):
-        
+
         whites = 0
-        blacks = 0  
+        blacks = 0
         for row in range(4):
             for col in range(4):
-                if(self.board.boards[i][j][row][col] == 'W'): # found a white piece
+                if(self.board.boards[i][j][row][col] == 'W'):  # found a white piece
                     whites += 1
-                elif(self.board.boards[i][j][row][col] == 'B'): # found a black piece
+                elif(self.board.boards[i][j][row][col] == 'B'):  # found a black piece
                     blacks += 1
-                if(whites != 0 and blacks != 0): # board with both pieces, no winner on this board
+                if(whites != 0 and blacks != 0):  # board with both pieces, no winner on this board
                     return False
-        
+
         # if function reaches here, there is a winner
         if(whites != 0):
             return "WHITE"
         else:
             return "BLACK"
 
-
     # checks for a winner in all boards
 
     def isThereWinner(self):
         for i in range(2):
             for j in range(2):
-                 winner = self.isThereWinnerInBoard(i, j)
-                 if(winner):
-                     return winner
+                winner = self.isThereWinnerInBoard(i, j)
+                if(winner):
+                    return winner
         return False
-        
-                            
+
+    # choose gamemode and difficulty
+
+    def menu(self):
+        print("\n=====================================================================")
+        print("\n====                           SHOBU                             ====")
+        print("\n=====================================================================")
+        print("\n\n====                           MENU                              ====")
+        print("\n\n    1. Player VS Player                         2.Player VS COM        ")
+        print("\n                           3. COM VS COM                             ")
+
+        mode = 0
+        while(mode < 1 or mode > 3):
+            mode = int(input("\nChoose a game mode: "))
+        self.mode = mode
+
+        if(mode == 3 or mode == 2):
+            difficulty = 0
+            print("\n   1.Easy                 2.Medium                  3.Hard   ")
+            while(difficulty < 1 or difficulty > 3):
+                difficulty = int(input("\nChoose difficulty: "))
+            self.difficulty = difficulty
 
     def run(self):
         while(True):
@@ -539,17 +565,20 @@ class GameLogic:
                 winner = self.isThereWinner()
                 if(winner):
                     break
-            self.player = self.switch_01(self.player)        
-            print("\n=====================================================================")
-            
-        
+            self.player = self.switch_01(self.player)
+            print(
+                "\n=====================================================================")
+
         print("\n=====================================================================")
         self.board.display()
-        
+
         print("\nGAME OVER! WINNER IS: " + winner)
 
-def main() :
+
+def main():
     game = GameLogic()
+    game.menu()
     game.run()
-    
+
+
 main()
