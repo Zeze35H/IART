@@ -324,7 +324,7 @@ class GameLogic:
     def verifyDirection(self, player_side, color_side, row, col, offset, piece, other_piece):
 
         if(row + offset[0] not in [0, 1, 2, 3] or col + offset[1] not in [0, 1, 2, 3]):
-            #print(row + offset[0], col + offset[1])
+            # print(row + offset[0], col + offset[1])
             return False  # out of board move
 
         v_dir = 0
@@ -477,6 +477,63 @@ class GameLogic:
 
         return False  # no enemy piece was pushed out of the board => no need to check for winners
 
+    # makes a passive and aggresive move based on the game mode and the color of the player to move; returns True if an enemy piece was pushed out of the board, else False
+
+    def makeMove(self, color, piece, other_piece):
+        if(self.mode == 1): #PvP
+            while(True):
+                offset, color_side, passive_selected = self.passiveMove(color)
+
+                other_color = self.switch_01(color_side)
+
+                agressive_selected, player_side = self.agressiveMove(
+                    offset, other_color, piece, other_piece)
+
+                if(agressive_selected is not None and player_side is not None):
+                    break
+        elif(self.mode == 2): # PvC
+            if((self.playerColor == 1 and color == 'White') or (self.playerColor == 2 and color == 'Black')): # Player move
+                while(True):
+                    offset, color_side, passive_selected = self.passiveMove(color)
+
+                    other_color = self.switch_01(color_side)
+
+                    agressive_selected, player_side = self.agressiveMove(
+                        offset, other_color, piece, other_piece)
+
+                    if(agressive_selected is not None and player_side is not None):
+                        break
+            else: # COM move
+                while(True):
+                    offset, color_side, passive_selected = self.passiveMoveCom(color)
+
+                    other_color = self.switch_01(color_side)
+
+                    agressive_selected, player_side = self.agressiveMoveCom(
+                        offset, other_color, piece, other_piece)
+
+                    if(agressive_selected is not None and player_side is not None):
+                        break
+
+        else: # CvC
+            while(True):
+                offset, color_side, passive_selected = self.passiveMoveCom(color)
+
+                other_color = self.switch_01(color_side)
+
+                agressive_selected, player_side = self.agressiveMoveCom(
+                    offset, other_color, piece, other_piece)
+
+                if(agressive_selected is not None and player_side is not None):
+                    break
+
+        
+        return self.updateBoard([self.player, color_side, passive_selected[0], passive_selected[1]],
+                                [player_side, other_color,
+                                    agressive_selected[0], agressive_selected[1]],
+                                offset, piece, other_piece)
+
+
     # calls passive and agressive move functions; returns True if an enemy piece was pushed out of the board, else False
 
     def turn(self):
@@ -490,21 +547,11 @@ class GameLogic:
             piece = "W"
             other_piece = "B"
 
-        while(True):
-            offset, color_side, passive_selected = self.passiveMove(color)
+        enemyPushedOff = self.makeMove(color, piece, other_piece)
 
-            other_color = self.switch_01(color_side)
+        return  enemyPushedOff
 
-            agressive_selected, player_side = self.agressiveMove(
-                offset, other_color, piece, other_piece)
 
-            if(agressive_selected is not None and player_side is not None):
-                break
-
-        return self.updateBoard([self.player, color_side, passive_selected[0], passive_selected[1]],
-                                [player_side, other_color,
-                                    agressive_selected[0], agressive_selected[1]],
-                                offset, piece, other_piece)
 
     # checks for a winner in a board; if winner, returns the winning color, else false
 
@@ -552,12 +599,31 @@ class GameLogic:
             mode = int(input("\nChoose a game mode: "))
         self.mode = mode
 
-        if(mode == 3 or mode == 2):
+        if(mode == 2):
+            playerColor = 0
+            print("\n   1.White                                          2.Black   ")
+            while(playerColor < 1 or playerColor > 3):
+                playerColor = int(input("\nChoose your Color: "))
+            self.playerColor = playerColor
+
             difficulty = 0
             print("\n   1.Easy                 2.Medium                  3.Hard   ")
             while(difficulty < 1 or difficulty > 3):
-                difficulty = int(input("\nChoose difficulty: "))
+                difficulty = int(input("\nChoose difficulty for COM: "))
             self.difficulty = difficulty
+
+        if(mode == 3):
+            difficultyWhite = 0
+            print("\n   1.Easy                 2.Medium                  3.Hard   ")
+            while(difficultyWhite < 1 or difficultyWhite > 3):
+                difficultyWhite = int(input("\nChoose difficulty for White: "))
+            self.difficultyWhite = difficultyWhite
+
+            difficultyBlack = 0
+            print("\n   1.Easy                 2.Medium                  3.Hard   ")
+            while(difficultyBlack < 1 or difficultyBlack > 3):
+                difficultyBlack = int(input("\nChoose difficulty for Black: "))
+            self.difficultyBlack = difficultyBlack
 
     def run(self):
         while(True):
