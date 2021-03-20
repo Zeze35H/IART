@@ -220,9 +220,41 @@ class GameLogic:
                 else:
                     print("CHOOSE A PIECE OF YOUR COLOR")
 
-    # displays board with an 'x' in the available passive move options; returns options
+    # returns options of legal passive moves
 
     def legalPassiveMoves(self, color_side, row_index, col_index):
+
+        options = []
+
+        for i in range(row_index - 2, row_index + 3):  # 2 rows behind, 2 rows ahead
+            if(i < 0 or i > 3):
+                continue
+            for j in range(col_index - 2, col_index + 3):  # 2 cols behind, 2 cols ahead
+                if(j < 0 or j > 3):
+                    continue
+
+                # skips any cell that doesnt satisfy an * format
+                if(((i == row_index - 2 or i == row_index + 2) and (j == col_index - 1 or j == col_index + 1)) or
+                   (((i == row_index - 1 or i == row_index + 1) and (j == col_index - 2 or j == col_index + 2)))):
+                    continue
+
+                # skips options that need to jump over pieces
+                if(i == row_index - 2 or i == row_index + 2 or
+                   j == col_index - 2 or j == col_index + 2):
+                    middle_i = int((row_index + i)/2)
+                    middle_j = int((col_index + j)/2)
+                    print(
+                        middle_i, middle_j, self.board.boards[self.player][color_side][middle_i][middle_j])
+                    if(self.board.boards[self.player][color_side][middle_i][middle_j] != ' '):
+                        continue
+
+        return options
+
+
+
+    # displays board with an 'x' in the available passive move options; returns options
+
+    def legalPassiveMovesWithDisplay(self, color_side, row_index, col_index):
 
         aux_board = Board()
         aux_board.boards = copy.deepcopy(self.board.boards)
@@ -305,7 +337,7 @@ class GameLogic:
 
             color_side, row_index, col_index = self.selectPiece(color.lower())
 
-            options = self.legalPassiveMoves(color_side, row_index, col_index)
+            options = self.legalPassiveMovesWithDisplay(color_side, row_index, col_index)
 
             offset = self.passiveMoveOptions(
                 options, color_side, row_index, col_index)
@@ -479,6 +511,31 @@ class GameLogic:
 
     # makes a passive and aggresive move based on the game mode and the color of the player to move; returns True if an enemy piece was pushed out of the board, else False
 
+
+    # =============================================================================
+    #  COM MOVE
+    # =============================================================================
+
+    def comMove(self, color, piece, other_piece):
+        for row_index in range(4):
+            for col_index in range(4): 
+                if(col <= 4):
+                    color_side = BLACK_BOARD
+                    other_color = WHITE_BOARD
+                else:
+                    color_side = WHITE_BOARD
+                    other_color = BLACK_BOARD
+
+                #TO DO verify if their is a piece
+                passiveMoves = self.legalPassiveMoves(color_side, row_index, col_index)
+                for passMove in passiveMoves:
+                    offset = [passMove[0]-row_index,passMove[1]-col_index]
+                    [aggroMoveB1,aggroMoveB2] = self.legalAgressiveMoves(
+                        offset, other_color, piece, other_piece)
+                    #TO DO 4.
+
+
+
     def makeMove(self, color, piece, other_piece):
         if(self.mode == 1): #PvP
             while(True):
@@ -503,7 +560,7 @@ class GameLogic:
 
                     if(agressive_selected is not None and player_side is not None):
                         break
-            else: # COM move
+            else:                                                                                             # COM move
                 while(True):
                     offset, color_side, passive_selected = self.passiveMoveCom(color)
 
