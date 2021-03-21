@@ -697,6 +697,42 @@ class GameLogic:
 
         print("\nGAME OVER! WINNER IS: " + winner)
 
+        
+
+    def minimax(board, depth,alpha,beta, maximizing):
+    verify = board.lock()
+    x,y = board.calc_points()
+    result = board.decide_winner(x,y)
+    if depth == 0 or verify:
+        return score_table[result]
+
+    if maximizing:
+        best = -math.inf 
+        for i in range(board.board_sizeboard.board_size):
+            for j in range(board.board_sizeboard.board_size):
+                x = board.move_alt(i,j)
+                if x :
+                    score = minimax(board,depth-1,alpha,beta,False)
+                    board.back()
+                    best = max(best,score)
+                    alpha = max(alpha,best)
+                    if(alpha>=beta):
+                        break
+        return best
+    else:
+        best = math.inf 
+        for i in range(board.board_sizeboard.board_size):
+            for j in range(board.board_sizeboard.board_size):
+                x = board.move_alt(i,j)
+                if x :
+                    score = minimax(board,depth-1,alpha,beta,True)
+                    board.back()
+                    best = min(best,score)
+                    beta = min(beta,best)
+                    if beta <= alpha:
+                        break
+        return best
+
 
 def main():
     game = GameLogic()
