@@ -2,6 +2,7 @@ import copy
 import signal
 import sys
 import time
+import math 
 
 
 def signal_handler(sig, frame):
@@ -81,6 +82,8 @@ class GameLogic:
     def __init__(self):
         self.board = Board()
         self.player = 1  # white=0, black=1
+
+        self.score = {0:0, 1:0} #scores initialized with 0, need this to minimax, but might change 
 
     # =============================================================================
     #  AUX FUNTIONS
@@ -699,39 +702,39 @@ class GameLogic:
 
         
 
-    def minimax(board, depth,alpha,beta, maximizing):
-        verify = board.lock()
-        x,y = board.calc_points()
-        result = board.decide_winner(x,y)
-        if depth == 0 or verify:
-            return score_table[result]
+def minimax(board, depth,alpha,beta, maximizing, self):
+    self.score = board.calc_points() # need to create this function 
+    result = board.isThereWinner(self)
 
-        if maximizing:
-            best = -math.inf 
-            for i in range(board.board_sizeboard.board_size):
-                for j in range(board.board_sizeboard.board_size):
-                    x = board.move_alt(i,j)
-                    if x :
-                        score = minimax(board,depth-1,alpha,beta,False)
-                        board.back()
-                        best = max(best,score)
-                        alpha = max(alpha,best)
-                        if(alpha>=beta):
-                            break
-            return best
-        else:
-            best = math.inf 
-            for i in range(board.board_sizeboard.board_size):
-                for j in range(board.board_sizeboard.board_size):
-                    x = board.move_alt(i,j)
-                    if x :
-                        score = minimax(board,depth-1,alpha,beta,True)
-                        board.back()
-                        best = min(best,score)
-                        beta = min(beta,best)
-                        if beta <= alpha:
-                            break
-            return best
+    if depth == 0:
+        return result
+
+    if maximizing:
+        best = -math.inf 
+        for i in range(board.board_sizeboard.board_size):
+            for j in range(board.board_sizeboard.board_size):
+                x = board.move_alt(i,j)
+                if x :
+                    score = minimax(board,depth-1,alpha,beta,False,self)
+                    board.back()
+                    best = max(best,score)
+                    alpha = max(alpha,best)
+                    if(alpha>=beta):
+                        break
+        return best
+    else:
+        best = math.inf 
+        for i in range(board.board_sizeboard.board_size):
+            for j in range(board.board_sizeboard.board_size):
+                x = board.move_alt(i,j)
+                if x :
+                    score = minimax(board,depth-1,alpha,beta,True,self)
+                    board.back()
+                    best = min(best,score)
+                    beta = min(beta,best)
+                    if beta <= alpha:
+                        break
+        return best
 
 
 def main():
