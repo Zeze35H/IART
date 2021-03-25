@@ -76,6 +76,82 @@ class Board:
         self.displayHomeboard(WHITE_HB, "White", 1)
         print(" ___________________________|__________________________")
         self.displayHomeboard(BLACK_HB, "Black", 5)
+        
+    def calcPoints(self, points_per_piece, points_per_extra_piece, points_per_extra_piece_tie, player):
+        
+        print(player)
+        score_num_pieces = []
+        for homeboard in range(2):
+            for board in range(2):
+                num_black = 0
+                num_white = 0
+                for row in range(4):
+                    for col in range(4):
+                        if(self.boards[homeboard][board][row][col] == "B"):
+                            num_black += 1
+                        elif(self.boards[homeboard][board][row][col] == "W"):
+                            num_white += 1
+                score_num_pieces.append([num_white, num_black])
+                
+        individual_board_scores = []
+        for score_num_piece in score_num_pieces:
+            if(score_num_piece[0] == 0): # 0 white pieces, black won
+                score = -1000000
+            elif(score_num_piece[1] == 0): # 0 black pieces, white won
+                score = 1000000
+            else:
+                score = (score_num_piece[0] - score_num_piece[1])*points_per_piece # +/- points_per_piece
+                if(score > 0): # white has more pieces
+                    if(score_num_piece[1] == 1): # 1 black piece left
+                        score += points_per_extra_piece[0]
+                    elif(score_num_piece[1] == 2): # 2 black piece left
+                        score += points_per_extra_piece[1]          
+                    else: # 3 black piece left
+                        score += points_per_extra_piece[2]
+                        
+                elif(score < 0): # black has more pieces
+                    if(score_num_piece[0] == 1): # 1 white piece left
+                        score -= points_per_extra_piece[0]
+                    elif(score_num_piece[0] == 2): # 2 white piece left
+                        score -= points_per_extra_piece[1]
+                    else: # 3 white piece left
+                        score -= points_per_extra_piece[2]
+                        
+                else: #same num of pieces
+                
+                    if(player): # black to move
+                        if(score_num_piece[0] == 1): # 1 pieces left
+                            score = -points_per_extra_piece_tie[0]
+                        elif(score_num_piece[0] == 2): # 2 piece left
+                            score = -points_per_extra_piece_tie[1]
+                        elif(score_num_piece[0] == 3): # 3 pieces left
+                            score = -points_per_extra_piece_tie[2] 
+                        else: # 4 piece left
+                            score = -points_per_extra_piece_tie[3]
+                    else: # white to move
+                        if(score_num_piece[0] == 1): # 1 pieces left
+                            score = points_per_extra_piece_tie[0]
+                        elif(score_num_piece[0] == 2): # 2 piece left
+                            score = points_per_extra_piece_tie[1]
+                        elif(score_num_piece[0] == 3): # 3 pieces left
+                            score = points_per_extra_piece_tie[2]
+                        else: # 4 piece left
+                            score = points_per_extra_piece_tie[3]
+                    
+                    
+                            
+            print(score)
+            individual_board_scores.append(score)
+            
+        final_score = individual_board_scores[0]*abs(individual_board_scores[0]) + individual_board_scores[1]*abs(individual_board_scores[1]) + individual_board_scores[2]*abs(individual_board_scores[2]) + individual_board_scores[3]*abs(individual_board_scores[3]) 
+        return final_score
+                        
+                
+            
+        
+        
+        
+        
 
 
 class GameLogic:
@@ -522,7 +598,7 @@ class GameLogic:
     def comMove(self, color, piece, other_piece):
         for row_index in range(4):
             for col_index in range(4): 
-                if(col <= 4):
+                if(col_index <= 4):
                     color_side = BLACK_BOARD
                     other_color = WHITE_BOARD
                 else:
@@ -687,6 +763,7 @@ class GameLogic:
 
     def run(self):
         while(True):
+            print("SCORE IS: " + str(self.board.calcPoints(10, [10,20,30], [1,2,3,4], self.player)))
             if(self.turn()):
                 winner = self.isThereWinner()
                 if(winner):
@@ -703,7 +780,7 @@ class GameLogic:
         
 
 def minimax(board, depth,alpha,beta, maximizing, self):
-    self.score = board.calc_points() # need to create this function 
+    self.score = board.calcPoints([10,20,30], [1,2,3,4], self.player) # need to create this function 
     result = board.isThereWinner(self)
 
     if depth == 0:
