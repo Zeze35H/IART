@@ -145,6 +145,7 @@ class Board:
             individual_board_scores.append(score)
         
         return individual_board_scores
+
       
     def calcPoints(self, board, points_per_piece, points_per_extra_piece, points_per_extra_piece_turn, player):
         
@@ -154,7 +155,7 @@ class Board:
                 
         diff_individual_board_scores = self.calcDiffNumPieces(score_num_pieces, points_per_piece, points_per_extra_piece, points_per_extra_piece_turn, player)
         
-        
+        #legal_moves_list = self.getLegalMoves
         
             
         final_score = individual_board_scores[0]*abs(individual_board_scores[0]) + individual_board_scores[1]*abs(individual_board_scores[1]) + individual_board_scores[2]*abs(individual_board_scores[2]) + individual_board_scores[3]*abs(individual_board_scores[3]) 
@@ -172,10 +173,6 @@ class GameLogic:
     def __init__(self):
         self.board = Board()
         self.player = 1  # white=0, black=1
-        self.playerColor
-        self.difficulty
-        self.difficultyWhite
-        self.difficultyBlack
 
         self.score = {0:0, 1:0} #scores initialized with 0, need this to minimax, but might change 
 
@@ -317,39 +314,9 @@ class GameLogic:
                 else:
                     print("CHOOSE A PIECE OF YOUR COLOR")
 
-    # returns options of legal passive moves
-
-    def legalPassiveMoves(self, color_side, row_index, col_index):
-
-        options = []
-
-        for i in range(row_index - 2, row_index + 3):  # 2 rows behind, 2 rows ahead
-            if(i < 0 or i > 3):
-                continue
-            for j in range(col_index - 2, col_index + 3):  # 2 cols behind, 2 cols ahead
-                if(j < 0 or j > 3):
-                    continue
-
-                # skips any cell that doesnt satisfy an * format
-                if(((i == row_index - 2 or i == row_index + 2) and (j == col_index - 1 or j == col_index + 1)) or
-                   (((i == row_index - 1 or i == row_index + 1) and (j == col_index - 2 or j == col_index + 2)))):
-                    continue
-
-                # skips options that need to jump over pieces
-                if(i == row_index - 2 or i == row_index + 2 or
-                   j == col_index - 2 or j == col_index + 2):
-                    middle_i = int((row_index + i)/2)
-                    middle_j = int((col_index + j)/2)
-                    if(self.board.boards[self.player][color_side][middle_i][middle_j] != ' '):
-                        continue
-
-        return options
-
-
-
     # displays board with an 'x' in the available passive move options; returns options
 
-    def legalPassiveMovesWithDisplay(self, color_side, row_index, col_index):
+    def legalPassiveMoves(self, color_side, row_index, col_index, is_human):
 
         aux_board = Board()
         aux_board.boards = copy.deepcopy(self.board.boards)
@@ -372,14 +339,16 @@ class GameLogic:
                    j == col_index - 2 or j == col_index + 2):
                     middle_i = int((row_index + i)/2)
                     middle_j = int((col_index + j)/2)
-                    if(self.board.boards[self.player][color_side][middle_i][middle_j] != ' '):
-                        continue
+                    if(is_human):
+                        if(self.board.boards[self.player][color_side][middle_i][middle_j] != ' '):
+                            continue
+                if(is_human):
+                    if(self.board.boards[self.player][color_side][i][j] == ' '):
+                        aux_board.boards[self.player][color_side][i][j] = 'x'
+                        options.append([i, j])
 
-                if(self.board.boards[self.player][color_side][i][j] == ' '):
-                    aux_board.boards[self.player][color_side][i][j] = 'x'
-                    options.append([i, j])
-
-        aux_board.display()
+        if(is_human):
+            aux_board.display()
 
         return options
 
@@ -430,7 +399,7 @@ class GameLogic:
 
             color_side, row_index, col_index = self.selectPiece(color.lower())
 
-            options = self.legalPassiveMoves(color_side, row_index, col_index)
+            options = self.legalPassiveMoves(color_side, row_index, col_index, True)
 
             offset = self.passiveMoveOptions(
                 options, color_side, row_index, col_index)
@@ -495,6 +464,42 @@ class GameLogic:
                         options2.append([row, col])
 
         return [options1, options2]
+
+    # gets all legal moves and returns four lists with passive and agressive from each player
+
+    def getLegalMoves(self, board):
+
+
+        score_num_pieces = []
+        for homeboard in range(2):
+            for board in range(2):
+                num_black = 0
+                num_white = 0
+                for row in range(4):
+                    for col in range(4):
+                        if(board[homeboard][board][row][col] == "B" and homeboard == 1): # If black piece on black HB
+                            passive_moves = self.legalPassiveMoves(None, row, col, False)
+                            for passive_move in passive_moves:
+                                offset = [passive_move[0]-row, passive_move[1]-col]
+                                agressive_moves = self.legalAgressiveMoves(offset, "W", )
+
+                        elif(board[homeboard][board][row][col] == "W" and homeboard == 0): #If white piece on white HB
+                            passive_moves = self.legalPassiveMoves(None, row, col, False)
+
+
+                score_num_pieces.append([num_white, num_black])
+        return score_num_pieces
+
+        
+
+        #passive_moves = self.legalPassiveMoves(None, ) 
+
+        return passive_white_legal_moves, passive_black_legal_moves, agressive_white_legal_moves, agressive_black_legal_moves
+
+
+
+
+
 
     # displays agressive move options and lets player choose one; returns selected piece (or 0 if player wants to re-select passive move)
 
@@ -662,7 +667,7 @@ class GameLogic:
             piece = "W"
             other_piece = "B"
 
-        enemyPushedOff = self.makeMove(color, piece, other_piece)
+        enemyPushedOff = self.makeMove(color, piece, other_piece, 5, True)
 
         return  enemyPushedOff
 
@@ -743,7 +748,7 @@ class GameLogic:
 
     def run(self):
         while(True):
-            print("SCORE IS: " + str(self.board.calcPoints(10, [10,20,30], [1,2,3,4], self.player)))
+            #print("SCORE IS: " + str(self.board.calcPoints(10, [10,20,30], [1,2,3,4], self.player)))
             if(self.turn()):
                 winner = self.isThereWinner()
                 if(winner):
