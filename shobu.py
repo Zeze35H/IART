@@ -76,10 +76,9 @@ class Board:
         self.displayHomeboard(WHITE_HB, "White", 1)
         print(" ___________________________|__________________________")
         self.displayHomeboard(BLACK_HB, "Black", 5)
+    
         
-    def calcPoints(self, points_per_piece, points_per_extra_piece, points_per_extra_piece_tie, player):
-        
-        print(player)
+    def countNumPieces(self, board):
         score_num_pieces = []
         for homeboard in range(2):
             for board in range(2):
@@ -87,12 +86,15 @@ class Board:
                 num_white = 0
                 for row in range(4):
                     for col in range(4):
-                        if(self.boards[homeboard][board][row][col] == "B"):
+                        if(board[homeboard][board][row][col] == "B"):
                             num_black += 1
-                        elif(self.boards[homeboard][board][row][col] == "W"):
+                        elif(board[homeboard][board][row][col] == "W"):
                             num_white += 1
                 score_num_pieces.append([num_white, num_black])
-                
+        return score_num_pieces
+    
+    def calcDiffNumPieces(self, score_num_pieces, points_per_piece, points_per_extra_piece, points_per_extra_piece_turn, player):
+        
         individual_board_scores = []
         for score_num_piece in score_num_pieces:
             if(score_num_piece[0] == 0): # 0 white pieces, black won
@@ -100,48 +102,60 @@ class Board:
             elif(score_num_piece[1] == 0): # 0 black pieces, white won
                 score = 1000000
             else:
-                score = (score_num_piece[0] - score_num_piece[1])*points_per_piece # +/- points_per_piece
-                if(score > 0): # white has more pieces
-                    if(score_num_piece[1] == 1): # 1 black piece left
-                        score += points_per_extra_piece[0]
-                    elif(score_num_piece[1] == 2): # 2 black piece left
-                        score += points_per_extra_piece[1]          
-                    else: # 3 black piece left
-                        score += points_per_extra_piece[2]
-                        
-                elif(score < 0): # black has more pieces
-                    if(score_num_piece[0] == 1): # 1 white piece left
-                        score -= points_per_extra_piece[0]
-                    elif(score_num_piece[0] == 2): # 2 white piece left
-                        score -= points_per_extra_piece[1]
-                    else: # 3 white piece left
-                        score -= points_per_extra_piece[2]
-                        
-                else: #same num of pieces
+                # +/- points_per_piece
+                score = (score_num_piece[0] - score_num_piece[1])*points_per_piece 
                 
-                    if(player): # black to move
-                        if(score_num_piece[0] == 1): # 1 pieces left
-                            score = -points_per_extra_piece_tie[0]
-                        elif(score_num_piece[0] == 2): # 2 piece left
-                            score = -points_per_extra_piece_tie[1]
-                        elif(score_num_piece[0] == 3): # 3 pieces left
-                            score = -points_per_extra_piece_tie[2] 
-                        else: # 4 piece left
-                            score = -points_per_extra_piece_tie[3]
-                    else: # white to move
-                        if(score_num_piece[0] == 1): # 1 pieces left
-                            score = points_per_extra_piece_tie[0]
-                        elif(score_num_piece[0] == 2): # 2 piece left
-                            score = points_per_extra_piece_tie[1]
-                        elif(score_num_piece[0] == 3): # 3 pieces left
-                            score = points_per_extra_piece_tie[2]
-                        else: # 4 piece left
-                            score = points_per_extra_piece_tie[3]
-                    
+                # value white base on how many black pieces left
+                if(score_num_piece[1] == 1): # 1 black piece left
+                    score += points_per_extra_piece[0]
+                elif(score_num_piece[1] == 2): # 2 black piece left
+                    score += points_per_extra_piece[1]          
+                elif(score_num_piece[1] == 3): # 3 black piece left
+                    score += points_per_extra_piece[2]
+                
+                # value black base on how many white pieces left
+                if(score_num_piece[0] == 1): # 1 white piece left
+                    score -= points_per_extra_piece[0]
+                elif(score_num_piece[0] == 2): # 2 white piece left
+                    score -= points_per_extra_piece[1]
+                elif(score_num_piece[0] == 3): # 3 white piece left
+                    score -= points_per_extra_piece[2]
+                
+                # value player's turn
+                if(player): # black to move
+                    if(score_num_piece[0] == 1): # 1 pieces left
+                        score = -points_per_extra_piece_turn[0]
+                    elif(score_num_piece[0] == 2): # 2 piece left
+                        score = -points_per_extra_piece_turn[1]
+                    elif(score_num_piece[0] == 3): # 3 pieces left
+                        score = -points_per_extra_piece_turn[2] 
+                    else: # 4 piece left
+                        score = -points_per_extra_piece_turn[3]
+                else: # white to move
+                    if(score_num_piece[0] == 1): # 1 pieces left
+                        score = points_per_extra_piece_turn[0]
+                    elif(score_num_piece[0] == 2): # 2 piece left
+                        score = points_per_extra_piece_turn[1]
+                    elif(score_num_piece[0] == 3): # 3 pieces left
+                        score = points_per_extra_piece_turn[2]
+                    else: # 4 piece left
+                        score = points_per_extra_piece_turn[3]
                     
                             
-            print(score)
             individual_board_scores.append(score)
+        
+        return individual_board_scores
+      
+    def calcPoints(self, board, points_per_piece, points_per_extra_piece, points_per_extra_piece_turn, player):
+        
+        print(player)
+        
+        score_num_pieces = self.countNumPieces(board)
+                
+        diff_individual_board_scores = self.calcDiffNumPieces(score_num_pieces, points_per_piece, points_per_extra_piece, points_per_extra_piece_turn, player)
+        
+        
+        
             
         final_score = individual_board_scores[0]*abs(individual_board_scores[0]) + individual_board_scores[1]*abs(individual_board_scores[1]) + individual_board_scores[2]*abs(individual_board_scores[2]) + individual_board_scores[3]*abs(individual_board_scores[3]) 
         return final_score
@@ -158,6 +172,10 @@ class GameLogic:
     def __init__(self):
         self.board = Board()
         self.player = 1  # white=0, black=1
+        self.playerColor
+        self.difficulty
+        self.difficultyWhite
+        self.difficultyBlack
 
         self.score = {0:0, 1:0} #scores initialized with 0, need this to minimax, but might change 
 
@@ -322,8 +340,6 @@ class GameLogic:
                    j == col_index - 2 or j == col_index + 2):
                     middle_i = int((row_index + i)/2)
                     middle_j = int((col_index + j)/2)
-                    print(
-                        middle_i, middle_j, self.board.boards[self.player][color_side][middle_i][middle_j])
                     if(self.board.boards[self.player][color_side][middle_i][middle_j] != ' '):
                         continue
 
@@ -356,8 +372,6 @@ class GameLogic:
                    j == col_index - 2 or j == col_index + 2):
                     middle_i = int((row_index + i)/2)
                     middle_j = int((col_index + j)/2)
-                    print(
-                        middle_i, middle_j, self.board.boards[self.player][color_side][middle_i][middle_j])
                     if(self.board.boards[self.player][color_side][middle_i][middle_j] != ' '):
                         continue
 
@@ -407,7 +421,7 @@ class GameLogic:
 
     def passiveMove(self, color):
         while(True):
-
+          
             self.board.display()
 
             print("\n> > "+color+" player's turn:")
@@ -416,7 +430,7 @@ class GameLogic:
 
             color_side, row_index, col_index = self.selectPiece(color.lower())
 
-            options = self.legalPassiveMovesWithDisplay(color_side, row_index, col_index)
+            options = self.legalPassiveMoves(color_side, row_index, col_index)
 
             offset = self.passiveMoveOptions(
                 options, color_side, row_index, col_index)
@@ -591,83 +605,48 @@ class GameLogic:
     # makes a passive and aggresive move based on the game mode and the color of the player to move; returns True if an enemy piece was pushed out of the board, else False
 
 
-    # =============================================================================
-    #  COM MOVE
-    # =============================================================================
 
-    def comMove(self, color, piece, other_piece):
-        for row_index in range(4):
-            for col_index in range(4): 
-                if(col_index <= 4):
-                    color_side = BLACK_BOARD
-                    other_color = WHITE_BOARD
-                else:
-                    color_side = WHITE_BOARD
-                    other_color = BLACK_BOARD
+    def playerMove(self, color, piece, other_piece):
+        while(True):
+            offset, color_side, passive_selected = self.passiveMove(color)
+    
+            other_color = self.switch_01(color_side)
+    
+            agressive_selected, player_side = self.agressiveMove(
+                offset, other_color, piece, other_piece)
+    
+            if(agressive_selected is not None and player_side is not None):
+                break
+            
+        return self.updateBoard([self.player, color_side, passive_selected[0], passive_selected[1]],
+                                [player_side, other_color, agressive_selected[0], agressive_selected[1]],
+                                offset, piece, other_piece)
 
-                #TO DO verify if their is a piece
-                passiveMoves = self.legalPassiveMoves(color_side, row_index, col_index)
-                for passMove in passiveMoves:
-                    offset = [passMove[0]-row_index,passMove[1]-col_index]
-                    [aggroMoveB1,aggroMoveB2] = self.legalAgressiveMoves(
-                        offset, other_color, piece, other_piece)
-                    #TO DO 4.
+    def computerMove(self, color, depth, prune, piece, other_piece,):
+        maximizing = False
+        if(color == 'White'):
+            maximizing = True
+        best_move = self.minimax(self.board, 10, sys.maxsize, -sys.minimax, maximizing, self.player)
+        
+        return self.updateBoard(best_move[1], best_move[2], best_move[3], piece, other_piece)
 
 
 
-    def makeMove(self, color, piece, other_piece):
-        if(self.mode == 1): #PvP
-            while(True):
-                offset, color_side, passive_selected = self.passiveMove(color)
-
-                other_color = self.switch_01(color_side)
-
-                agressive_selected, player_side = self.agressiveMove(
-                    offset, other_color, piece, other_piece)
-
-                if(agressive_selected is not None and player_side is not None):
-                    break
+    def makeMove(self, color, piece, other_piece, depth, prune):
+        if(self.mode == 1): #PvP         
+            return self.playerMove(color, piece, other_piece)
+                
         elif(self.mode == 2): # PvC
-            if((self.playerColor == 1 and color == 'White') or (self.playerColor == 2 and color == 'Black')): # Player move
-                while(True):
-                    offset, color_side, passive_selected = self.passiveMove(color)
-
-                    other_color = self.switch_01(color_side)
-
-                    agressive_selected, player_side = self.agressiveMove(
-                        offset, other_color, piece, other_piece)
-
-                    if(agressive_selected is not None and player_side is not None):
-                        break
-            else:                                                                                             # COM move
-                while(True):
-                    offset, color_side, passive_selected = self.passiveMoveCom(color)
-
-                    other_color = self.switch_01(color_side)
-
-                    agressive_selected, player_side = self.agressiveMoveCom(
-                        offset, other_color, piece, other_piece)
-
-                    if(agressive_selected is not None and player_side is not None):
-                        break
+        
+            # Player move               
+            if(self.player == self.playerColor):
+                return self.playerMove(color, piece, other_piece)  
+            else:
+                return self.computerMove(color, depth, prune, piece, other_piece,)
+                
 
         else: # CvC
-            while(True):
-                offset, color_side, passive_selected = self.passiveMoveCom(color)
-
-                other_color = self.switch_01(color_side)
-
-                agressive_selected, player_side = self.agressiveMoveCom(
-                    offset, other_color, piece, other_piece)
-
-                if(agressive_selected is not None and player_side is not None):
-                    break
-
-        
-        return self.updateBoard([self.player, color_side, passive_selected[0], passive_selected[1]],
-                                [player_side, other_color,
-                                    agressive_selected[0], agressive_selected[1]],
-                                offset, piece, other_piece)
+            return self.computerMove(color, depth, prune, piece, other_piece,)
 
 
     # calls passive and agressive move functions; returns True if an enemy piece was pushed out of the board, else False
@@ -740,7 +719,8 @@ class GameLogic:
             print("\n   1.White                                          2.Black   ")
             while(playerColor < 1 or playerColor > 3):
                 playerColor = int(input("\nChoose your Color: "))
-            self.playerColor = playerColor
+            self.playerColor = playerColor - 1
+            
 
             difficulty = 0
             print("\n   1.Easy                 2.Medium                  3.Hard   ")
@@ -779,39 +759,39 @@ class GameLogic:
 
         
 
-def minimax(board, depth,alpha,beta, maximizing, self):
-    self.score = board.calcPoints([10,20,30], [1,2,3,4], self.player) # need to create this function 
-    result = board.isThereWinner(self)
-
-    if depth == 0:
-        return result
-
-    if maximizing:
-        best = -math.inf 
-        for i in range(board.board_sizeboard.board_size):
-            for j in range(board.board_sizeboard.board_size):
-                x = board.move_alt(i,j)
-                if x :
-                    score = minimax(board,depth-1,alpha,beta,False,self)
-                    board.back()
-                    best = max(best,score)
-                    alpha = max(alpha,best)
-                    if(alpha>=beta):
-                        break
-        return best
-    else:
-        best = math.inf 
-        for i in range(board.board_sizeboard.board_size):
-            for j in range(board.board_sizeboard.board_size):
-                x = board.move_alt(i,j)
-                if x :
-                    score = minimax(board,depth-1,alpha,beta,True,self)
-                    board.back()
-                    best = min(best,score)
-                    beta = min(beta,best)
-                    if beta <= alpha:
-                        break
-        return best
+    def minimax(self, board, depth, alpha,beta, maximizing, turn):
+        self.score = board.calcPoints([10,20,30], [1,2,3,4], turn) # need to create this function 
+        result = board.isThereWinner(self)
+    
+        if depth == 0:
+            return result
+    
+        if maximizing:
+            best = -math.inf 
+            for i in range(board.board_sizeboard.board_size):
+                for j in range(board.board_sizeboard.board_size):
+                    x = board.move_alt(i,j)
+                    if x :
+                        score = self.minimax(board,depth-1,alpha,beta,False,self)
+                        board.back()
+                        best = max(best,score)
+                        alpha = max(alpha,best)
+                        if(alpha>=beta):
+                            break
+            return best
+        else:
+            best = math.inf 
+            for i in range(board.board_sizeboard.board_size):
+                for j in range(board.board_sizeboard.board_size):
+                    x = board.move_alt(i,j)
+                    if x :
+                        score = self.minimax(board,depth-1,alpha,beta,True,self)
+                        board.back()
+                        best = min(best,score)
+                        beta = min(beta,best)
+                        if beta <= alpha:
+                            break
+            return best
 
 
 def main():
