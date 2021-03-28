@@ -78,7 +78,7 @@ class Board:
         self.displayHomeboard(BLACK_HB, "Black", 5)
     
         
-    def countNumPieces(self, board):
+    def countNumPieces(self):
         score_num_pieces = []
         for homeboard in range(2):
             for board in range(2):
@@ -86,57 +86,57 @@ class Board:
                 num_white = 0
                 for row in range(4):
                     for col in range(4):
-                        if(board[homeboard][board][row][col] == "B"):
+                        if(self.boards[homeboard][board][row][col] == "B"):
                             num_black += 1
-                        elif(board[homeboard][board][row][col] == "W"):
+                        elif(self.board[homeboard][board][row][col] == "W"):
                             num_white += 1
                 score_num_pieces.append([num_white, num_black])
         return score_num_pieces
     
-    def calcDiffNumPieces(self, score_num_pieces, points_per_piece, points_per_extra_piece, points_per_extra_piece_turn, player):
+    def calcDiffNumPieces(self, boards_num_pieces, points_per_piece, points_per_extra_piece, points_per_extra_piece_turn, player):
         
         individual_board_scores = []
-        for score_num_piece in score_num_pieces:
-            if(score_num_piece[0] == 0): # 0 white pieces, black won
+        for board_num_pieces in boards_num_pieces:
+            if(board_num_pieces[0] == 0): # 0 white pieces, black won
                 score = -1000000
-            elif(score_num_piece[1] == 0): # 0 black pieces, white won
+            elif(board_num_pieces[1] == 0): # 0 black pieces, white won
                 score = 1000000
             else:
                 # +/- points_per_piece
-                score = (score_num_piece[0] - score_num_piece[1])*points_per_piece 
+                score = (board_num_pieces[0] - board_num_pieces[1])*points_per_piece 
                 
                 # value white base on how many black pieces left
-                if(score_num_piece[1] == 1): # 1 black piece left
+                if(board_num_pieces[1] == 1): # 1 black piece left
                     score += points_per_extra_piece[0]
-                elif(score_num_piece[1] == 2): # 2 black piece left
+                elif(board_num_pieces[1] == 2): # 2 black piece left
                     score += points_per_extra_piece[1]          
-                elif(score_num_piece[1] == 3): # 3 black piece left
+                elif(board_num_pieces[1] == 3): # 3 black piece left
                     score += points_per_extra_piece[2]
                 
                 # value black base on how many white pieces left
-                if(score_num_piece[0] == 1): # 1 white piece left
+                if(board_num_pieces[0] == 1): # 1 white piece left
                     score -= points_per_extra_piece[0]
-                elif(score_num_piece[0] == 2): # 2 white piece left
+                elif(board_num_pieces[0] == 2): # 2 white piece left
                     score -= points_per_extra_piece[1]
-                elif(score_num_piece[0] == 3): # 3 white piece left
+                elif(board_num_pieces[0] == 3): # 3 white piece left
                     score -= points_per_extra_piece[2]
                 
                 # value player's turn
                 if(player): # black to move
-                    if(score_num_piece[0] == 1): # 1 pieces left
+                    if(board_num_pieces[0] == 1): # 1 pieces left
                         score = -points_per_extra_piece_turn[0]
-                    elif(score_num_piece[0] == 2): # 2 piece left
+                    elif(board_num_pieces[0] == 2): # 2 piece left
                         score = -points_per_extra_piece_turn[1]
-                    elif(score_num_piece[0] == 3): # 3 pieces left
+                    elif(board_num_pieces[0] == 3): # 3 pieces left
                         score = -points_per_extra_piece_turn[2] 
                     else: # 4 piece left
                         score = -points_per_extra_piece_turn[3]
                 else: # white to move
-                    if(score_num_piece[0] == 1): # 1 pieces left
+                    if(board_num_pieces[0] == 1): # 1 pieces left
                         score = points_per_extra_piece_turn[0]
-                    elif(score_num_piece[0] == 2): # 2 piece left
+                    elif(board_num_pieces[0] == 2): # 2 piece left
                         score = points_per_extra_piece_turn[1]
-                    elif(score_num_piece[0] == 3): # 3 pieces left
+                    elif(board_num_pieces[0] == 3): # 3 pieces left
                         score = points_per_extra_piece_turn[2]
                     else: # 4 piece left
                         score = points_per_extra_piece_turn[3]
@@ -147,15 +147,14 @@ class Board:
         return individual_board_scores
 
       
-    def calcPoints(self, board, points_per_piece, points_per_extra_piece, points_per_extra_piece_turn, player):
-        
-        print(player)
-        
-        score_num_pieces = self.countNumPieces(board)
+    def calcPoints(self, points_per_piece, points_per_extra_piece, points_per_extra_piece_turn, player, gameLogic):
+              
+        boards_num_pieces = self.countNumPieces()
                 
-        diff_individual_board_scores = self.calcDiffNumPieces(score_num_pieces, points_per_piece, points_per_extra_piece, points_per_extra_piece_turn, player)
+        diff_individual_board_scores = self.calcDiffNumPieces(boards_num_pieces, points_per_piece, points_per_extra_piece, points_per_extra_piece_turn, player)
         
-        #legal_moves_list = self.getLegalMoves
+        #move: [passive_piece, agressive_piece , offset]
+        black_moves, white_moves = gameLogic.getLegalMoves()
         
             
         final_score = individual_board_scores[0]*abs(individual_board_scores[0]) + individual_board_scores[1]*abs(individual_board_scores[1]) + individual_board_scores[2]*abs(individual_board_scores[2]) + individual_board_scores[3]*abs(individual_board_scores[3]) 
@@ -318,8 +317,9 @@ class GameLogic:
 
     def legalPassiveMoves(self, color_side, row_index, col_index, is_human):
 
-        aux_board = Board()
-        aux_board.boards = copy.deepcopy(self.board.boards)
+        if(is_human):
+            aux_board = Board()
+            aux_board.boards = copy.deepcopy(self.board.boards)
         options = []
 
         for i in range(row_index - 2, row_index + 3):  # 2 rows behind, 2 rows ahead
@@ -342,10 +342,12 @@ class GameLogic:
                     if(is_human):
                         if(self.board.boards[self.player][color_side][middle_i][middle_j] != ' '):
                             continue
-                if(is_human):
-                    if(self.board.boards[self.player][color_side][i][j] == ' '):
+                
+                if(self.board.boards[self.player][color_side][i][j] == ' '):
+                    options.append([i, j])
+                    if(is_human):
                         aux_board.boards[self.player][color_side][i][j] = 'x'
-                        options.append([i, j])
+                    
 
         if(is_human):
             aux_board.display()
@@ -470,31 +472,38 @@ class GameLogic:
     def getLegalMoves(self, board):
 
 
-        score_num_pieces = []
+        black_moves = []
+        white_moves = []
+        
         for homeboard in range(2):
             for board in range(2):
-                num_black = 0
-                num_white = 0
                 for row in range(4):
                     for col in range(4):
                         if(board[homeboard][board][row][col] == "B" and homeboard == 1): # If black piece on black HB
-                            passive_moves = self.legalPassiveMoves(None, row, col, False)
+                            passive_moves = self.legalPassiveMoves(board, row, col, False)
                             for passive_move in passive_moves:
                                 offset = [passive_move[0]-row, passive_move[1]-col]
-                                agressive_moves = self.legalAgressiveMoves(offset, "W", )
+                                other_color = self.switch_01(board)
+                                agressive_moves = self.legalAgressiveMoves(offset, other_color, "B", "W")
+                                for agressive_move in agressive_moves[0]:
+                                    black_moves.append([homeboard,board,row,col], [0,other_color,agressive_move[0],agressive_move[1]], offset)
+                                for agressive_move in agressive_moves[0]:
+                                    black_moves.append([homeboard,board,row,col], [1,other_color,agressive_move[0],agressive_move[1]], offset)
 
                         elif(board[homeboard][board][row][col] == "W" and homeboard == 0): #If white piece on white HB
-                            passive_moves = self.legalPassiveMoves(None, row, col, False)
+                            passive_moves = self.legalPassiveMoves(board, row, col, False)
+                            for passive_move in passive_moves:
+                                offset = [passive_move[0]-row, passive_move[1]-col]
+                                other_color = self.switch_01(board)
+                                agressive_moves = self.legalAgressiveMoves(offset, other_color, "W", "B")
+                                for agressive_move in agressive_moves[0]:
+                                    black_moves.append([homeboard,board,row,col], [0,other_color,agressive_move[0],agressive_move[1]], offset)
+                                for agressive_move in agressive_moves[0]:
+                                    black_moves.append([homeboard,board,row,col], [1,other_color,agressive_move[0],agressive_move[1]], offset)
 
 
-                score_num_pieces.append([num_white, num_black])
-        return score_num_pieces
 
-        
-
-        #passive_moves = self.legalPassiveMoves(None, ) 
-
-        return passive_white_legal_moves, passive_black_legal_moves, agressive_white_legal_moves, agressive_black_legal_moves
+        return black_moves, white_moves
 
 
 
@@ -565,14 +574,14 @@ class GameLogic:
 
     # receives selected passive and agressive pieces, the move offset and the player and enemy player's pieces; returns True if an enemy piece was pushed out of the board, else False
 
-    def updateBoard(self, passive_piece, agressive_piece, offset, piece, other_piece):
+    def updateBoard(self, passive_piece, agressive_piece, offset, piece, other_piece, board):
 
-        self.board.boards[passive_piece[0]][passive_piece[1]
+        board.boards[passive_piece[0]][passive_piece[1]
                                             ][passive_piece[2]][passive_piece[3]] = ' '
-        self.board.boards[passive_piece[0]][passive_piece[1]
+        board.boards[passive_piece[0]][passive_piece[1]
                                             ][passive_piece[2] + offset[0]][passive_piece[3] + offset[1]] = piece
 
-        self.board.boards[agressive_piece[0]][agressive_piece[1]
+        board.boards[agressive_piece[0]][agressive_piece[1]
                                               ][agressive_piece[2]][agressive_piece[3]] = ' '
 
         v_dir = 0
@@ -588,19 +597,19 @@ class GameLogic:
         pushing = False
 
         for i in range(1, n_iter + 1):
-            if(self.board.boards[agressive_piece[0]][agressive_piece[1]][agressive_piece[2] + i*v_dir][agressive_piece[3] + i*h_dir] == other_piece):
+            if(board.boards[agressive_piece[0]][agressive_piece[1]][agressive_piece[2] + i*v_dir][agressive_piece[3] + i*h_dir] == other_piece):
                 pushing = True  # is pushing other color piece
             if(i == n_iter):  # if in last cell of the offset, place the piece
-                self.board.boards[agressive_piece[0]][agressive_piece[1]
+                board.boards[agressive_piece[0]][agressive_piece[1]
                                                       ][agressive_piece[2] + i*v_dir][agressive_piece[3] + i*h_dir] = piece
             else:  # else, clean the path
-                self.board.boards[agressive_piece[0]][agressive_piece[1]
+                board.boards[agressive_piece[0]][agressive_piece[1]
                                                       ][agressive_piece[2] + i*v_dir][agressive_piece[3] + i*h_dir] = ' '
 
         if(pushing):  # if there's enemy piece to be pushed
             # if destiny location is in board, update it
             if(agressive_piece[2] + offset[0] + v_dir in [0, 1, 2, 3] and agressive_piece[3] + offset[1] + h_dir in [0, 1, 2, 3]):
-                self.board.boards[agressive_piece[0]][agressive_piece[1]][agressive_piece[2] +
+                board.boards[agressive_piece[0]][agressive_piece[1]][agressive_piece[2] +
                                                                           offset[0] + v_dir][agressive_piece[3] + offset[1] + h_dir] = other_piece
             else:
                 return True  # enemy piece was pushed out of board => check for winners
@@ -625,15 +634,15 @@ class GameLogic:
             
         return self.updateBoard([self.player, color_side, passive_selected[0], passive_selected[1]],
                                 [player_side, other_color, agressive_selected[0], agressive_selected[1]],
-                                offset, piece, other_piece)
+                                offset, piece, other_piece, self.board)
 
-    def computerMove(self, color, depth, prune, piece, other_piece,):
+    def computerMove(self, color, depth, prune, piece, other_piece):
         maximizing = False
         if(color == 'White'):
             maximizing = True
-        best_move = self.minimax(self.board, 10, sys.maxsize, -sys.minimax, maximizing, self.player)
+        best_move = self.minimax(self.board, 10, sys.maxsize, -sys.minimax, maximizing, self.player, piece, other_piece)
         
-        return self.updateBoard(best_move[1], best_move[2], best_move[3], piece, other_piece)
+        return self.updateBoard(best_move[1], best_move[2], best_move[3], piece, other_piece, self.board)
 
 
 
@@ -748,7 +757,6 @@ class GameLogic:
 
     def run(self):
         while(True):
-            #print("SCORE IS: " + str(self.board.calcPoints(10, [10,20,30], [1,2,3,4], self.player)))
             if(self.turn()):
                 winner = self.isThereWinner()
                 if(winner):
@@ -764,38 +772,42 @@ class GameLogic:
 
         
 
-    def minimax(self, board, depth, alpha,beta, maximizing, turn):
-        self.score = board.calcPoints([10,20,30], [1,2,3,4], turn) # need to create this function 
-        result = board.isThereWinner(self)
-    
+    def minimax(self, board, depth, alpha, beta, maximizing, turn, piece, other_piece):
+        
+        black_moves, white_moves = self.getLegalMoves()
+     
         if depth == 0:
-            return result
+            return  board.calcPoints(10, [10,20,30], [1,2,3,4], turn, self)
     
-        if maximizing:
+        if maximizing: # white to play (wants to maximize score)
             best = -math.inf 
-            for i in range(board.board_sizeboard.board_size):
-                for j in range(board.board_sizeboard.board_size):
-                    x = board.move_alt(i,j)
-                    if x :
-                        score = self.minimax(board,depth-1,alpha,beta,False,self)
-                        board.back()
-                        best = max(best,score)
-                        alpha = max(alpha,best)
-                        if(alpha>=beta):
-                            break
+            for move in white_moves:
+                updated_board = Board()
+                updated_board.boards = copy.deepcopy(board)
+                self.updateBoard(move[0], move[1], move[2], piece, other_piece, updated_board)
+                turn = self.switch_01(turn) # change player pov
+                score = self.minimax(self,updated_board,depth-1,alpha,beta,False,turn)
+                best = max(best,score)
+                alpha = max(alpha,best)
+                if(alpha>=beta):
+                    break
+                    
+                    
             return best
-        else:
+        else: # black to play (wants to minimize score)
             best = math.inf 
-            for i in range(board.board_sizeboard.board_size):
-                for j in range(board.board_sizeboard.board_size):
-                    x = board.move_alt(i,j)
-                    if x :
-                        score = self.minimax(board,depth-1,alpha,beta,True,self)
-                        board.back()
-                        best = min(best,score)
-                        beta = min(beta,best)
-                        if beta <= alpha:
-                            break
+            for move in black_moves:
+                updated_board = Board()
+                updated_board.boards = copy.deepcopy(board)
+                self.updateBoard(move[0], move[1], move[2], piece, other_piece, updated_board)
+                turn = self.switch_01(turn) # change player pov
+                score = self.minimax(self,updated_board,depth-1,alpha,beta,True,turn)
+                board.back()
+                best = min(best,score)
+                beta = min(beta,best)
+                if beta <= alpha:
+                    break
+                    
             return best
 
 
