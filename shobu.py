@@ -88,7 +88,7 @@ class Board:
                     for col in range(4):
                         if(self.boards[homeboard][board][row][col] == "B"):
                             num_black += 1
-                        elif(self.board[homeboard][board][row][col] == "W"):
+                        elif(self.boards[homeboard][board][row][col] == "W"):
                             num_white += 1
                 score_num_pieces.append([num_white, num_black])
         return score_num_pieces
@@ -151,10 +151,10 @@ class Board:
               
         boards_num_pieces = self.countNumPieces()
                 
-        diff_individual_board_scores = self.calcDiffNumPieces(boards_num_pieces, points_per_piece, points_per_extra_piece, points_per_extra_piece_turn, player)
+        individual_board_scores = self.calcDiffNumPieces(boards_num_pieces, points_per_piece, points_per_extra_piece, points_per_extra_piece_turn, player)
         
         #move: [passive_piece, agressive_piece , offset]
-        black_moves, white_moves = gameLogic.getLegalMoves()
+        #black_moves, white_moves = gameLogic.getLegalMoves()
         
             
         final_score = individual_board_scores[0]*abs(individual_board_scores[0]) + individual_board_scores[1]*abs(individual_board_scores[1]) + individual_board_scores[2]*abs(individual_board_scores[2]) + individual_board_scores[3]*abs(individual_board_scores[3]) 
@@ -469,7 +469,7 @@ class GameLogic:
 
     # gets all legal moves and returns four lists with passive and agressive from each player
 
-    def getLegalMoves(self, board):
+    def getLegalMoves(self, gameboard):
 
 
         black_moves = []
@@ -479,27 +479,27 @@ class GameLogic:
             for board in range(2):
                 for row in range(4):
                     for col in range(4):
-                        if(board[homeboard][board][row][col] == "B" and homeboard == 1): # If black piece on black HB
+                        if(gameboard.boards[homeboard][board][row][col] == "B" and homeboard == 1): # If black piece on black HB
                             passive_moves = self.legalPassiveMoves(board, row, col, False)
                             for passive_move in passive_moves:
                                 offset = [passive_move[0]-row, passive_move[1]-col]
                                 other_color = self.switch_01(board)
                                 agressive_moves = self.legalAgressiveMoves(offset, other_color, "B", "W")
                                 for agressive_move in agressive_moves[0]:
-                                    black_moves.append([homeboard,board,row,col], [0,other_color,agressive_move[0],agressive_move[1]], offset)
+                                    black_moves.append([[homeboard,board,row,col], [0,other_color,agressive_move[0],agressive_move[1]], offset])
                                 for agressive_move in agressive_moves[0]:
-                                    black_moves.append([homeboard,board,row,col], [1,other_color,agressive_move[0],agressive_move[1]], offset)
+                                    black_moves.append([[homeboard,board,row,col], [1,other_color,agressive_move[0],agressive_move[1]], offset])
 
-                        elif(board[homeboard][board][row][col] == "W" and homeboard == 0): #If white piece on white HB
+                        elif(gameboard.boards[homeboard][board][row][col] == "W" and homeboard == 0): #If white piece on white HB
                             passive_moves = self.legalPassiveMoves(board, row, col, False)
                             for passive_move in passive_moves:
                                 offset = [passive_move[0]-row, passive_move[1]-col]
                                 other_color = self.switch_01(board)
                                 agressive_moves = self.legalAgressiveMoves(offset, other_color, "W", "B")
                                 for agressive_move in agressive_moves[0]:
-                                    black_moves.append([homeboard,board,row,col], [0,other_color,agressive_move[0],agressive_move[1]], offset)
+                                    black_moves.append([[homeboard,board,row,col], [0,other_color,agressive_move[0],agressive_move[1]], offset])
                                 for agressive_move in agressive_moves[0]:
-                                    black_moves.append([homeboard,board,row,col], [1,other_color,agressive_move[0],agressive_move[1]], offset)
+                                    black_moves.append([[homeboard,board,row,col], [1,other_color,agressive_move[0],agressive_move[1]], offset])
 
 
 
@@ -640,7 +640,7 @@ class GameLogic:
         maximizing = False
         if(color == 'White'):
             maximizing = True
-        best_move = self.minimax(self.board, 10, sys.maxsize, -sys.minimax, maximizing, self.player, piece, other_piece)
+        best_move = self.minimax(self.board, 0, sys.maxsize, -sys.maxsize, maximizing, self.player, piece, other_piece)
         
         return self.updateBoard(best_move[1], best_move[2], best_move[3], piece, other_piece, self.board)
 
@@ -774,7 +774,9 @@ class GameLogic:
 
     def minimax(self, board, depth, alpha, beta, maximizing, turn, piece, other_piece):
         
-        black_moves, white_moves = self.getLegalMoves()
+        print("\n\n\n\n\n")
+        print(type(board))
+        black_moves, white_moves = self.getLegalMoves(board)
      
         if depth == 0:
             return  board.calcPoints(10, [10,20,30], [1,2,3,4], turn, self)
@@ -808,7 +810,7 @@ class GameLogic:
                 if beta <= alpha:
                     break
                     
-            return best
+        return best
 
 
 def main():
