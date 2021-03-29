@@ -2,7 +2,6 @@ import copy
 import signal
 import sys
 import time
-import math 
 
 
 def signal_handler(sig, frame):
@@ -154,10 +153,14 @@ class Board:
         individual_board_scores = self.calcDiffNumPieces(boards_num_pieces, points_per_piece, points_per_extra_piece, points_per_extra_piece_turn, player)
         
         #move: [passive_piece, agressive_piece , offset]
-        #black_moves, white_moves = gameLogic.getLegalMoves()
+        black_moves, white_moves = gameLogic.getLegalMoves(self)
+        
+        
+        
         
             
         final_score = individual_board_scores[0]*abs(individual_board_scores[0]) + individual_board_scores[1]*abs(individual_board_scores[1]) + individual_board_scores[2]*abs(individual_board_scores[2]) + individual_board_scores[3]*abs(individual_board_scores[3]) 
+     
         return final_score
                         
                 
@@ -483,6 +486,7 @@ class GameLogic:
                             passive_moves = self.legalPassiveMoves(board, row, col, False)
                             for passive_move in passive_moves:
                                 offset = [passive_move[0]-row, passive_move[1]-col]
+                                print(row, col, passive_move)
                                 other_color = self.switch_01(board)
                                 agressive_moves = self.legalAgressiveMoves(offset, other_color, "B", "W")
                                 for agressive_move in agressive_moves[0]:
@@ -494,12 +498,13 @@ class GameLogic:
                             passive_moves = self.legalPassiveMoves(board, row, col, False)
                             for passive_move in passive_moves:
                                 offset = [passive_move[0]-row, passive_move[1]-col]
+                                print(row, col, passive_move)
                                 other_color = self.switch_01(board)
                                 agressive_moves = self.legalAgressiveMoves(offset, other_color, "W", "B")
                                 for agressive_move in agressive_moves[0]:
-                                    black_moves.append([[homeboard,board,row,col], [0,other_color,agressive_move[0],agressive_move[1]], offset])
+                                    white_moves.append([[homeboard,board,row,col], [0,other_color,agressive_move[0],agressive_move[1]], offset])
                                 for agressive_move in agressive_moves[0]:
-                                    black_moves.append([[homeboard,board,row,col], [1,other_color,agressive_move[0],agressive_move[1]], offset])
+                                    white_moves.append([[homeboard,board,row,col], [1,other_color,agressive_move[0],agressive_move[1]], offset])
 
 
 
@@ -575,14 +580,22 @@ class GameLogic:
     # receives selected passive and agressive pieces, the move offset and the player and enemy player's pieces; returns True if an enemy piece was pushed out of the board, else False
 
     def updateBoard(self, passive_piece, agressive_piece, offset, piece, other_piece, board):
+        
+        
+        if(board.boards[passive_piece[0]][passive_piece[1]][passive_piece[2]][passive_piece[3]] == ' '
+           or board.boards[agressive_piece[0]][agressive_piece[1]][agressive_piece[2]][agressive_piece[3]] == ' '):
+            print(passive_piece)
+            print(agressive_piece)
+            print(offset)
+            print(piece)
+            exit()
+            
+            
+        
+        board.boards[passive_piece[0]][passive_piece[1]][passive_piece[2]][passive_piece[3]] = ' '
+        board.boards[passive_piece[0]][passive_piece[1]][passive_piece[2] + offset[0]][passive_piece[3] + offset[1]] = piece
 
-        board.boards[passive_piece[0]][passive_piece[1]
-                                            ][passive_piece[2]][passive_piece[3]] = ' '
-        board.boards[passive_piece[0]][passive_piece[1]
-                                            ][passive_piece[2] + offset[0]][passive_piece[3] + offset[1]] = piece
-
-        board.boards[agressive_piece[0]][agressive_piece[1]
-                                              ][agressive_piece[2]][agressive_piece[3]] = ' '
+        board.boards[agressive_piece[0]][agressive_piece[1]][agressive_piece[2]][agressive_piece[3]] = ' '
 
         v_dir = 0
         h_dir = 0
@@ -637,10 +650,12 @@ class GameLogic:
                                 offset, piece, other_piece, self.board)
 
     def computerMove(self, color, depth, prune, piece, other_piece):
+        
         maximizing = False
         if(color == 'White'):
             maximizing = True
-        best_move = self.minimax(self.board, 0, sys.maxsize, -sys.maxsize, maximizing, self.player, piece, other_piece)
+            
+        best_move = self.minimax(self.board, 2, 2, -sys.maxsize, sys.maxsize, maximizing, self.player, piece, other_piece)
         
         return self.updateBoard(best_move[1], best_move[2], best_move[3], piece, other_piece, self.board)
 
@@ -757,6 +772,7 @@ class GameLogic:
 
     def run(self):
         while(True):
+            self.board.display()
             if(self.turn()):
                 winner = self.isThereWinner()
                 if(winner):
@@ -772,42 +788,48 @@ class GameLogic:
 
         
 
-    def minimax(self, board, depth, alpha, beta, maximizing, turn, piece, other_piece):
+    def minimax(self, board, depth_size, depth, alpha, beta, maximizing, turn, piece, other_piece):
         
-        print("\n\n\n\n\n")
-        print(type(board))
         black_moves, white_moves = self.getLegalMoves(board)
      
         if depth == 0:
-            return  board.calcPoints(10, [10,20,30], [1,2,3,4], turn, self)
+            return  [board.calcPoints(10, [10,20,30], [1,2,3,4], turn, self), None, None, None]
     
         if maximizing: # white to play (wants to maximize score)
-            best = -math.inf 
+            best = [-sys.maxsize, None, None, None] 
             for move in white_moves:
                 updated_board = Board()
-                updated_board.boards = copy.deepcopy(board)
+                updated_board.boards = copy.deepcopy(board.boards)
                 self.updateBoard(move[0], move[1], move[2], piece, other_piece, updated_board)
-                turn = self.switch_01(turn) # change player pov
-                score = self.minimax(self,updated_board,depth-1,alpha,beta,False,turn)
-                best = max(best,score)
-                alpha = max(alpha,best)
-                if(alpha>=beta):
+                if(depth != 1):
+                    turn = self.switch_01(turn) # change player pov
+                score = self.minimax(updated_board, depth_size, depth-1,alpha,beta,False,turn, piece, other_piece)
+                if(score[0] > best[0]): # score value > best value
+                    if(depth == depth_size):
+                        best = [score[0], move[0], move[1], move[2]]
+                    else:
+                        best[0] = score[0]
+                alpha = max(alpha,best[0])
+                if(alpha >= beta):
                     break
                     
-                    
-            return best
+
         else: # black to play (wants to minimize score)
-            best = math.inf 
+            best = [sys.maxsize, None, None, None] 
             for move in black_moves:
                 updated_board = Board()
-                updated_board.boards = copy.deepcopy(board)
+                updated_board.boards = copy.deepcopy(board.boards)
                 self.updateBoard(move[0], move[1], move[2], piece, other_piece, updated_board)
-                turn = self.switch_01(turn) # change player pov
-                score = self.minimax(self,updated_board,depth-1,alpha,beta,True,turn)
-                board.back()
-                best = min(best,score)
-                beta = min(beta,best)
-                if beta <= alpha:
+                if(depth != 1):
+                    turn = self.switch_01(turn) # change player pov
+                score = self.minimax(updated_board, depth_size, depth-1,alpha,beta,True,turn,piece, other_piece)
+                if(score[0] < best[0]): # score value < best value
+                    if(depth == depth_size):
+                        best = [score[0], move[0], move[1], move[2]]
+                    else:
+                        best[0] = score[0]
+                beta = min(beta,best[0])
+                if(beta <= alpha):
                     break
                     
         return best
