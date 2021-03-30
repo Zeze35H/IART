@@ -656,11 +656,11 @@ class GameLogic:
             if(self.player == self.playerColor):
                 return self.playerMove(color, piece, other_piece)  
             else:
-                return self.computerMove(color, depth, prune, piece, other_piece,)
+                return self.computerMove(color, depth, prune, piece, other_piece)
                 
 
         else: # CvC
-            return self.computerMove(color, depth, prune, piece, other_piece,)
+            return self.computerMove(color, depth, prune, piece, other_piece)
 
 
     # calls passive and agressive move functions; returns True if an enemy piece was pushed out of the board, else False
