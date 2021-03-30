@@ -154,6 +154,49 @@ class Board:
         
         #move: [passive_piece, agressive_piece , offset]
         black_moves, white_moves = gameLogic.getLegalMoves(self, [])
+        
+        num_insecure = [0,0,0,0]
+        num_secure_attempt = [0,0,0,0]
+        num_secure_no_attempt = [0,0,0,0]
+        
+        # calcular peças inseguras
+        if(player == 0): # white player
+            for black_move in black_moves:
+                aux_board = Board()
+                aux_board.boards = copy.deepcopy(self.boards)
+                result = gameLogic.updateBoard(black_move[0], black_move[1], black_move[2], "B", "W", aux_board)
+                
+                homeboard = black_move[1][0] # homeboard
+                color_board = black_move[1][1] # color_board
+                
+                if(result[0]): # if white piece is pushed off the board
+                    num_insecure[homeboard*2 + color_board] += 1
+                elif(result[1]): # if there was a pushing attempt
+                    num_secure_attempt[homeboard*2 + color_board] += 1
+                else:
+                    num_secure_no_attempt[homeboard*2 + color_board] += 1
+                
+        else: #black player
+            for white_move in white_moves:
+                aux_board = Board()
+                aux_board.boards = copy.deepcopy(self.boards)
+                result = gameLogic.updateBoard(white_move[0], white_move[1], white_move[2], "W", "B", aux_board)
+                
+                homeboard = white_move[1][0] # homeboard
+                color_board = white_move[1][1] # color_board
+                
+                if(result[0]): # if white piece is pushed off the board
+                    num_insecure[homeboard*2 + color_board] += 1
+                elif(result[1]): # if there was a pushing attempt
+                    num_secure_attempt[homeboard*2 + color_board] += 1
+                else:
+                    num_secure_no_attempt[homeboard*2 + color_board] += 1
+            
+            
+        
+                
+        
+        
             
         final_score = individual_board_scores[0]*abs(individual_board_scores[0]) + individual_board_scores[1]*abs(individual_board_scores[1]) + individual_board_scores[2]*abs(individual_board_scores[2]) + individual_board_scores[3]*abs(individual_board_scores[3]) 
      
@@ -642,9 +685,9 @@ class GameLogic:
                 board.boards[agressive_piece[0]][agressive_piece[1]][agressive_piece[2] +
                                                                           offset[0] + v_dir][agressive_piece[3] + offset[1] + h_dir] = other_piece
             else:
-                return True  # enemy piece was pushed out of board => check for winners
+                return [True, pushing]  # enemy piece was pushed out of board => check for winners
 
-        return False  # no enemy piece was pushed out of the board => no need to check for winners
+        return [False, pushing]  # no enemy piece was pushed out of the board => no need to check for winners
 
     # makes a passive and aggresive move based on the game mode and the color of the player to move; returns True if an enemy piece was pushed out of the board, else False
 
@@ -664,7 +707,7 @@ class GameLogic:
             
         return self.updateBoard([self.player, color_side, passive_selected[0], passive_selected[1]],
                                 [player_side, other_color, agressive_selected[0], agressive_selected[1]],
-                                offset, piece, other_piece, self.board)
+                                offset, piece, other_piece, self.board)[0]
 
     def computerMove(self, color, depth, prune, piece, other_piece):
         
@@ -674,7 +717,7 @@ class GameLogic:
             
         best_move = self.minimax(self.board, [], 2, 2, -sys.maxsize, sys.maxsize, maximizing, self.player, piece, other_piece)
         
-        return self.updateBoard(best_move[1], best_move[2], best_move[3], piece, other_piece, self.board)
+        return self.updateBoard(best_move[1], best_move[2], best_move[3], piece, other_piece, self.board)[0]
 
 
 
@@ -688,11 +731,11 @@ class GameLogic:
             if(self.player == self.playerColor):
                 return self.playerMove(color, piece, other_piece)  
             else:
-                return self.computerMove(color, depth, prune, piece, other_piece)
+                return self.computerMove(color, depth, prune, piece, other_piece,)
                 
 
         else: # CvC
-            return self.computerMove(color, depth, prune, piece, other_piece)
+            return self.computerMove(color, depth, prune, piece, other_piece,)
 
 
     # calls passive and agressive move functions; returns True if an enemy piece was pushed out of the board, else False
@@ -808,8 +851,14 @@ class GameLogic:
     def minimax(self, board, repeated, depth_size, depth, alpha, beta, maximizing, turn, piece, other_piece):
         
         black_moves, white_moves = self.getLegalMoves(board, repeated)
+        
+        
+        
      
         if depth == 0:
+            for x in repeated:
+                print("Repeated\n")
+                x.display()
             return  [board.calcPoints(10, [10,20,30], [1,2,3,4], turn, self), None, None, None]
     
         if maximizing: # white to play (wants to maximize score)
@@ -821,7 +870,7 @@ class GameLogic:
                 repeated.append(updated_board)
                 if(depth != 1):
                     turn = self.switch_01(turn) # change player pov
-                score = self.minimax(updated_board, repeated, depth_size, depth-1,alpha,beta,False,turn, piece, other_piece)
+                score = self.minimax(updated_board, repeated, depth_size, depth-1,alpha,beta,False,turn, other_piece, piece)
                 if(score[0] > best[0]): # score value > best value
                     if(depth == depth_size):
                         best = [score[0], move[0], move[1], move[2]]
@@ -841,7 +890,7 @@ class GameLogic:
                 repeated.append(updated_board)
                 if(depth != 1):
                     turn = self.switch_01(turn) # change player pov
-                score = self.minimax(updated_board, repeated, depth_size, depth-1,alpha,beta,True,turn,piece, other_piece)
+                score = self.minimax(updated_board, repeated, depth_size, depth-1,alpha,beta,True,turn, other_piece, piece)
                 if(score[0] < best[0]): # score value < best value
                     if(depth == depth_size):
                         best = [score[0], move[0], move[1], move[2]]
