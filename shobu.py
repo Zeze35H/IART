@@ -857,6 +857,7 @@ class GameLogic:
      
         if depth == 0:
             for x in repeated:
+                print("Repeated\n")
                 x.display()
             return  [board.calcPoints(10, [10,20,30], [1,2,3,4], turn, self), None, None, None]
     
@@ -869,7 +870,7 @@ class GameLogic:
                 repeated.append(updated_board)
                 if(depth != 1):
                     turn = self.switch_01(turn) # change player pov
-                score = self.minimax(updated_board, repeated, depth_size, depth-1,alpha,beta,False,turn, piece, other_piece)
+                score = self.minimax(updated_board, repeated, depth_size, depth-1,alpha,beta,False,turn, other_piece, piece)
                 if(score[0] > best[0]): # score value > best value
                     if(depth == depth_size):
                         best = [score[0], move[0], move[1], move[2]]
@@ -889,7 +890,7 @@ class GameLogic:
                 repeated.append(updated_board)
                 if(depth != 1):
                     turn = self.switch_01(turn) # change player pov
-                score = self.minimax(updated_board, repeated, depth_size, depth-1,alpha,beta,True,turn,piece, other_piece)
+                score = self.minimax(updated_board, repeated, depth_size, depth-1,alpha,beta,True,turn, other_piece, piece)
                 if(score[0] < best[0]): # score value < best value
                     if(depth == depth_size):
                         best = [score[0], move[0], move[1], move[2]]
