@@ -153,11 +153,7 @@ class Board:
         individual_board_scores = self.calcDiffNumPieces(boards_num_pieces, points_per_piece, points_per_extra_piece, points_per_extra_piece_turn, player)
         
         #move: [passive_piece, agressive_piece , offset]
-        black_moves, white_moves = gameLogic.getLegalMoves(self)
-        
-        
-        
-        
+        black_moves, white_moves = gameLogic.getLegalMoves(self, [])
             
         final_score = individual_board_scores[0]*abs(individual_board_scores[0]) + individual_board_scores[1]*abs(individual_board_scores[1]) + individual_board_scores[2]*abs(individual_board_scores[2]) + individual_board_scores[3]*abs(individual_board_scores[3]) 
      
