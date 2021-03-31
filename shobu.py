@@ -156,8 +156,7 @@ class Board:
             #print(individual_board_scores)
 
         #move: [passive_piece, agressive_piece , offset]
-        white_moves = gameLogic.getLegalMoves(self, [], 0)
-        black_moves = gameLogic.getLegalMoves(self, [], 1)
+        
         
         num_insecure = [0,0,0,0]
         num_secure_attempt = [0,0,0,0]
@@ -165,6 +164,7 @@ class Board:
         
         # calcular peças inseguras
         if(player == 0): # white player
+            black_moves = gameLogic.getLegalMoves(self, [], 1)
             for black_move in black_moves:
                 aux_board = Board()
                 aux_board.boards = copy.deepcopy(self.boards)
@@ -181,6 +181,7 @@ class Board:
                     num_secure_no_attempt[homeboard*2 + color_board] += 1
                 
         else: #black player
+            white_moves = gameLogic.getLegalMoves(self, [], 0)
             for white_move in white_moves:
                 aux_board = Board()
                 aux_board.boards = copy.deepcopy(self.boards)
@@ -195,7 +196,6 @@ class Board:
                     num_secure_attempt[homeboard*2 + color_board] += 1
                 else:
                     num_secure_no_attempt[homeboard*2 + color_board] += 1
-            
             
         
                 
@@ -857,12 +857,16 @@ class GameLogic:
         moves = self.getLegalMoves(board, repeated, turn)
         move_scores = []
         start_time = timeit.default_timer()
+        elapsed2 = 0
         for move in moves:
             updated_board = Board()
             updated_board.boards = copy.deepcopy(board.boards)
             self.updateBoard(move[0], move[1], move[2], piece, other_piece, updated_board)
+            start_time2 = timeit.default_timer()
             move_score = board.calcPoints(10, [10,20,30], [4,3,2,1], turn, self)
+            elapsed2 += timeit.default_timer() - start_time2
             move_scores.append([move, move_score])
+        print("----->Calc: ", elapsed2)
         elapsed = timeit.default_timer() - start_time
         print("|||" , elapsed)
 
@@ -880,10 +884,8 @@ class GameLogic:
         
         if depth == 0:
             return  [board.calcPoints(10, [10,20,30], [4,3,2,1], turn, self), None, None, None]
-        start_time = timeit.default_timer()
-        moves = self.sortMoves(board, repeated, turn, piece, other_piece)
-        elapsed = timeit.default_timer() - start_time
-        print(elapsed)
+        
+        moves = self.getLegalMoves(board, repeated, turn)
 
     
         if maximizing: # white to play (wants to maximize score)
