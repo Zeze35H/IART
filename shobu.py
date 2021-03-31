@@ -857,12 +857,9 @@ class GameLogic:
 
     def minimax(self, board, repeated, depth_size, depth, alpha, beta, maximizing, turn, piece, other_piece):
         
-        black_moves, white_moves = self.ordenaJogada(board, repeated)
+        black_moves, white_moves = self.getLegalMoves(board, repeated)
      
         if depth == 0:
-            for x in repeated:
-                print("Repeated\n")
-                x.display()
             return  [board.calcPoints(10, [10,20,30], [1,2,3,4], turn, self), None, None, None]
     
         if maximizing: # white to play (wants to maximize score)
