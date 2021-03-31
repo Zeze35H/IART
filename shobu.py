@@ -199,9 +199,6 @@ class Board:
             
         
                 
-        
-        
-            
         final_score = individual_board_scores[0]*abs(individual_board_scores[0]) + individual_board_scores[1]*abs(individual_board_scores[1]) + individual_board_scores[2]*abs(individual_board_scores[2]) + individual_board_scores[3]*abs(individual_board_scores[3]) 
         return final_score
         
@@ -717,9 +714,9 @@ class GameLogic:
         maximizing = False
         if(color == 'White'):
             maximizing = True
-            
-        best_move = self.minimax(self.board, [], 2, 2, -sys.maxsize, sys.maxsize, maximizing, self.player, piece, other_piece)
+        x = []
         
+        best_move = self.minimax(self.board, x, 2, 2, -sys.maxsize, sys.maxsize, maximizing, self.player, piece, other_piece)
         return self.updateBoard(best_move[1], best_move[2], best_move[3], piece, other_piece, self.board)[0]
 
 
@@ -852,23 +849,42 @@ class GameLogic:
             print("||||||||| Elapsed Time on This Turn: ", elapsed)
         print("\n=====================================================================")
         self.board.display()
-
         print("\nGAME OVER! WINNER IS: " + winner)
 
-        
+    
+    def sortMoves(self, board, repeated, turn, piece, other_piece):
+
+        moves = self.getLegalMoves(board, repeated, turn)
+        move_scores = []
+        start_time = timeit.default_timer()
+        for move in moves:
+            updated_board = Board()
+            updated_board.boards = copy.deepcopy(board.boards)
+            self.updateBoard(move[0], move[1], move[2], piece, other_piece, updated_board)
+            move_score = board.calcPoints(10, [10,20,30], [4,3,2,1], turn, self)
+            move_scores.append([move, move_score])
+        elapsed = timeit.default_timer() - start_time
+        print("|||" , elapsed)
+
+        if turn == 1:
+            best_move = min(move_scores, key= lambda move_score : move_score[1]) #ascending order, for black
+
+        else:
+            best_move = max(move_scores, key= lambda move_score : move_score[1])
+
+        moves.remove(best_move[0])
+        moves.insert(0, best_move[0])
+        return moves
 
     def minimax(self, board, repeated, depth_size, depth, alpha, beta, maximizing, turn, piece, other_piece):
         
         if depth == 0:
             return  [board.calcPoints(10, [10,20,30], [4,3,2,1], turn, self), None, None, None]
+        start_time = timeit.default_timer()
+        moves = self.sortMoves(board, repeated, turn, piece, other_piece)
+        elapsed = timeit.default_timer() - start_time
+        print(elapsed)
 
-        moves = self.getLegalMoves(board, repeated, turn)
-
-        #for move in moves:
-            #updated_board = Board()
-            #updated_board.boards = copy.deepcopy(board.boards)
-            #self.updateBoard(move[0], move[1], move[2], piece, other_piece, updated_board)
-            #move_score = board.calcPoints(10, [10,20,30], [4,3,2,1], turn, self)
     
         if maximizing: # white to play (wants to maximize score)
             best = [-sys.maxsize, None, None, None] 
