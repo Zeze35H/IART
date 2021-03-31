@@ -3,7 +3,8 @@ import signal
 import sys
 import time
 import timeit
-
+import os
+import multiprocessing
 
 def signal_handler(sig, frame):
     print('\n\nExiting...')
@@ -516,58 +517,77 @@ class GameLogic:
 
         #start_time = timeit.default_timer()
 
-        moves = []
+        moves = multiprocessing.Queue()
         
-        for homeboard in range(2):
-            for board in range(2):
-                for row in range(4):
-                    for col in range(4):
-                        if(player == 1 and gameboard.boards[homeboard][board][row][col] == "B" and homeboard == 1): # If black player and black piece on black HB
-                            passive_moves = self.legalPassiveMoves(gameboard ,homeboard, board, row, col, False)
-                            for passive_move in passive_moves:
-                                offset = [passive_move[0]-row, passive_move[1]-col]
-                                other_color = self.switch_01(board)
-                                agressive_moves = self.legalAgressiveMoves(gameboard, offset, other_color, "B", "W")
-                                
-                                for agressive_move in agressive_moves[0]:
-                                    aux_board = Board()
-                                    aux_board.boards = copy.deepcopy(gameboard.boards)
-                                    self.updateBoard([homeboard,board,row,col], [0,other_color,agressive_move[0],agressive_move[1]], offset, "B", "W", aux_board)
-                                    if(aux_board.isNotRepeated(repeated)):
-                                        moves.append([[homeboard,board,row,col], [0,other_color,agressive_move[0],agressive_move[1]], offset])
-                                
-                                for agressive_move in agressive_moves[1]:
-                                    aux_board = Board()
-                                    aux_board.boards = copy.deepcopy(gameboard.boards)
-                                    self.updateBoard([homeboard,board,row,col], [1,other_color,agressive_move[0],agressive_move[1]], offset, "B", "W", aux_board)
-                                    if(aux_board.isNotRepeated(repeated)):
-                                        moves.append([[homeboard,board,row,col], [1,other_color,agressive_move[0],agressive_move[1]], offset])
+        isOriginal = 0
+        if(os.fork() == 0):
+            homeboard = 0
+        else:
+            isOriginal = 1
+            homeboard = 1
 
-                        elif(player == 0 and gameboard.boards[homeboard][board][row][col] == "W" and homeboard == 0): #If white player and white piece on white HB
-                            passive_moves = self.legalPassiveMoves(gameboard ,homeboard, board, row, col, False)
-                            for passive_move in passive_moves:
-                                offset = [passive_move[0]-row, passive_move[1]-col]
-                                other_color = self.switch_01(board)
-                                agressive_moves = self.legalAgressiveMoves(gameboard, offset, other_color, "W", "B")
-                                
-                                for agressive_move in agressive_moves[0]:
-                                    aux_board = Board()
-                                    aux_board.boards = copy.deepcopy(gameboard.boards)
-                                    self.updateBoard([homeboard,board,row,col], [0,other_color,agressive_move[0],agressive_move[1]], offset, "W", "B", aux_board)
-                                    if(aux_board.isNotRepeated(repeated)):
-                                        moves.append([[homeboard,board,row,col], [0,other_color,agressive_move[0],agressive_move[1]], offset])
-                                    
-                                for agressive_move in agressive_moves[1]:
-                                    aux_board = Board()
-                                    aux_board.boards = copy.deepcopy(gameboard.boards)
-                                    self.updateBoard([homeboard,board,row,col], [1,other_color,agressive_move[0],agressive_move[1]], offset, "W", "B", aux_board)
-                                    if(aux_board.isNotRepeated(repeated)):
-                                        moves.append([[homeboard,board,row,col], [1,other_color,agressive_move[0],agressive_move[1]], offset])
+        if(os.fork() == 0):
+            board = 0
+        else:
+            board = 1
+
+        for row in range(4):
+            for col in range(4):
+                if(player == 1 and gameboard.boards[homeboard][board][row][col] == "B" and homeboard == 1): # If black player and black piece on black HB
+                    passive_moves = self.legalPassiveMoves(gameboard ,homeboard, board, row, col, False)
+                    for passive_move in passive_moves:
+                        offset = [passive_move[0]-row, passive_move[1]-col]
+                        other_color = self.switch_01(board)
+                        agressive_moves = self.legalAgressiveMoves(gameboard, offset, other_color, "B", "W")
+                        
+                        for agressive_move in agressive_moves[0]:
+                            aux_board = Board()
+                            aux_board.boards = copy.deepcopy(gameboard.boards)
+                            self.updateBoard([homeboard,board,row,col], [0,other_color,agressive_move[0],agressive_move[1]], offset, "B", "W", aux_board)
+                            if(aux_board.isNotRepeated(repeated)):
+                                moves.put([[homeboard,board,row,col], [0,other_color,agressive_move[0],agressive_move[1]], offset])
+                        
+                        for agressive_move in agressive_moves[1]:
+                            aux_board = Board()
+                            aux_board.boards = copy.deepcopy(gameboard.boards)
+                            self.updateBoard([homeboard,board,row,col], [1,other_color,agressive_move[0],agressive_move[1]], offset, "B", "W", aux_board)
+                            if(aux_board.isNotRepeated(repeated)):
+                                moves.put([[homeboard,board,row,col], [1,other_color,agressive_move[0],agressive_move[1]], offset])
+
+                elif(player == 0 and gameboard.boards[homeboard][board][row][col] == "W" and homeboard == 0): #If white player and white piece on white HB
+                    passive_moves = self.legalPassiveMoves(gameboard ,homeboard, board, row, col, False)
+                    for passive_move in passive_moves:
+                        offset = [passive_move[0]-row, passive_move[1]-col]
+                        other_color = self.switch_01(board)
+                        agressive_moves = self.legalAgressiveMoves(gameboard, offset, other_color, "W", "B")
+                        
+                        for agressive_move in agressive_moves[0]:
+                            aux_board = Board()
+                            aux_board.boards = copy.deepcopy(gameboard.boards)
+                            self.updateBoard([homeboard,board,row,col], [0,other_color,agressive_move[0],agressive_move[1]], offset, "W", "B", aux_board)
+                            if(aux_board.isNotRepeated(repeated)):
+                                moves.put([[homeboard,board,row,col], [0,other_color,agressive_move[0],agressive_move[1]], offset])
+                            
+                        for agressive_move in agressive_moves[1]:
+                            aux_board = Board()
+                            aux_board.boards = copy.deepcopy(gameboard.boards)
+                            self.updateBoard([homeboard,board,row,col], [1,other_color,agressive_move[0],agressive_move[1]], offset, "W", "B", aux_board)
+                            if(aux_board.isNotRepeated(repeated)):
+                                moves.put([[homeboard,board,row,col], [1,other_color,agressive_move[0],agressive_move[1]], offset])
 
         #elapsed = timeit.default_timer() - start_time
         #print("Elapsed Time on Legal Moves: ", elapsed)
 
-        return moves
+        new_moves = []
+        if(isOriginal != 0):
+            print("Died")
+            os._exit(0)
+            
+        else:
+            while(moves.empty() == False):
+                new_moves.append(move.get())
+            print("Finished Copy")
+        return new_moves
 
 
 
