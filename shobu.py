@@ -195,11 +195,8 @@ class Board:
             
         
                 
-        
-        
-            
         final_score = individual_board_scores[0]*abs(individual_board_scores[0]) + individual_board_scores[1]*abs(individual_board_scores[1]) + individual_board_scores[2]*abs(individual_board_scores[2]) + individual_board_scores[3]*abs(individual_board_scores[3]) 
-     
+        # security = [num_insecure, num_secure_attempt, num_secure_no_attempt]
         return final_score
         
 
@@ -563,7 +560,7 @@ class GameLogic:
                                     aux_board.boards = copy.deepcopy(gameboard.boards)
                                     self.updateBoard([homeboard,board,row,col], [1,other_color,agressive_move[0],agressive_move[1]], offset, "W", "B", aux_board)
                                     if(aux_board.isNotRepeated(repeated)):
-                                        white_moves.append([[homeboard,board,row,col], [0,other_color,agressive_move[0],agressive_move[1]], offset])
+                                        white_moves.append([[homeboard,board,row,col], [1,other_color,agressive_move[0],agressive_move[1]], offset])
 
 
 
@@ -714,9 +711,9 @@ class GameLogic:
         maximizing = False
         if(color == 'White'):
             maximizing = True
-            
-        best_move = self.minimax(self.board, [], 2, 2, -sys.maxsize, sys.maxsize, maximizing, self.player, piece, other_piece)
+        x = []
         
+        best_move = self.minimax(self.board, x, 2, 2, -sys.maxsize, sys.maxsize, maximizing, self.player, piece, other_piece)
         return self.updateBoard(best_move[1], best_move[2], best_move[3], piece, other_piece, self.board)[0]
 
 
@@ -843,17 +840,24 @@ class GameLogic:
 
         print("\n=====================================================================")
         self.board.display()
-
         print("\nGAME OVER! WINNER IS: " + winner)
 
-        
+    
+    def ordenaJogada(self, board, repeated):
+        black_moves, white_moves = self.getLegalMoves(board, repeated)
+
+        b_points = board.calcPoints(10, [10,20,30], [1,2,3,4], 1, self)
+        w_points = board.calcPoints(10, [10,20,30], [1,2,3,4], 0, self)
+
+
+        b_sorted = sorted(black_moves, key=b_points)
+        w_sorted = sorted(white_moves, key=w_points, reverse=true)
+
+        return b_sorted, w_sorted
 
     def minimax(self, board, repeated, depth_size, depth, alpha, beta, maximizing, turn, piece, other_piece):
         
-        black_moves, white_moves = self.getLegalMoves(board, repeated)
-        
-        
-        
+        black_moves, white_moves = self.ordenaJogada(board, repeated)
      
         if depth == 0:
             for x in repeated:
