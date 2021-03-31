@@ -3,7 +3,7 @@ import signal
 import sys
 import time
 import timeit
-
+import random
 
 def signal_handler(sig, frame):
     print('\n\nExiting...')
@@ -897,7 +897,8 @@ class GameLogic:
                 repeated.append(updated_board)
                 turn = self.switch_01(turn) # change player pov
                 score = self.minimax(updated_board, repeated, depth_size, depth-1,alpha,beta,False,turn, other_piece, piece)
-                if(score[0] > best[0]): # score value > best value
+                repeated.pop()
+                if(score[0] > best[0] or (score[0] == best[0] and random.randrange(0,6) == 3)): # score value > best value, if its same updates with a certain probability
                     if(depth == depth_size):
                         best = [score[0], move[0], move[1], move[2]]
                     else:
@@ -905,7 +906,7 @@ class GameLogic:
                 alpha = max(alpha,best[0])
                 if(alpha >= beta):
                     break
-                repeated.pop()
+                
                     
 
         else: # black to play (wants to minimize score)
@@ -917,7 +918,7 @@ class GameLogic:
                 repeated.append(updated_board)
                 turn = self.switch_01(turn) # change player pov
                 score = self.minimax(updated_board, repeated, depth_size, depth-1,alpha,beta,True,turn, other_piece, piece)
-                if(score[0] < best[0]): # score value < best value
+                if(score[0] < best[0] or (score[0] == best[0] and random.randrange(0,6) == 3)): # score value < best value, if its same updates with a certain probability
                     if(depth == depth_size):
                         best = [score[0], move[0], move[1], move[2]]
                     else:
