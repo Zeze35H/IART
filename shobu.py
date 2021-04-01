@@ -34,8 +34,8 @@ class Board:
         self.points_per_extra_piece_turn = [40,30,20,10]
         self.points_per_unique_vulnerable = -15  # total unique pieces vulnerable on a given board
         self.points_per_insecure = -1     # total attacks that kill on all pieces of a given board
-        self.points_per_secure_attempt = 0 # total pieces secure on a given board
-        self.points_per_secure_no_attempt = 0 # total pieces secure on a given board with no attemps to kill them
+        self.points_per_unique_secure = 15    # total unique secure pieces on a given board
+
 
         self.boards = [[[['W', 'W', 'W', 'W'],
                          [' ', ' ', ' ', ' '],
@@ -100,6 +100,10 @@ class Board:
                             num_black += 1
                         elif(self.boards[homeboard][board][row][col] == "W"):
                             num_white += 1
+                if num_white > 4 or num_black > 4:
+                    print("ERRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRROR\n\n\n")
+                    self.display()
+                    return None
                 score_num_pieces.append([num_white, num_black])
         return score_num_pieces
     
@@ -169,10 +173,10 @@ class Board:
         
         
         num_insecure = [0,0,0,0] #Left to right, up to down
-        num_secure_attempt = [0,0,0,0]
-        num_secure_no_attempt = [0,0,0,0]
+        unique_secure_attempt_by_board = [0,0,0,0]
         unique_pieces_vulnerable = [] #[[homeboard,board,row,col],...]
         unique_pieces_vulnerable_by_board = [0,0,0,0]
+
         # calcular peças inseguras
         if(player == 1): # black player
             black_moves = gameLogic.getLegalMoves(self, [], 1)
@@ -191,10 +195,6 @@ class Board:
                     except ValueError:
                         unique_pieces_vulnerable.append(result[2])
                         unique_pieces_vulnerable_by_board[homeboard*2 + color_board] += 1
-                elif(result[1]): # if there was a pushing attempt
-                    num_secure_attempt[homeboard*2 + color_board] += 1
-                else:
-                    num_secure_no_attempt[homeboard*2 + color_board] += 1
                 
         else: #white player
             white_moves = gameLogic.getLegalMoves(self, [], 0)
@@ -213,15 +213,17 @@ class Board:
                     except ValueError:
                         unique_pieces_vulnerable.append(result[2])
                         unique_pieces_vulnerable_by_board[homeboard*2 + color_board] += 1
-                elif(result[1]): # if there was a pushing attempt
-                    num_secure_attempt[homeboard*2 + color_board] += 1
-                else:
-                    num_secure_no_attempt[homeboard*2 + color_board] += 1
             
-        print("Insecure: ", num_insecure)
-        print("     Secure: ", num_secure_attempt)
-        print("         Secure no attempt: ", num_secure_no_attempt )
-        print(" ")
+        for i in range(4):
+            if player == 1: 
+                unique_secure_attempt_by_board[i]= boards_num_pieces[i][0] - unique_pieces_vulnerable_by_board[i] # check total white pieces - total white vulnerable pieces
+            else: 
+                unique_secure_attempt_by_board[i]= boards_num_pieces[i][1] - unique_pieces_vulnerable_by_board[i] # check total black pieces - total black vulnerable pieces
+        #print("Board Num Pieces: ", boards_num_pieces)
+        #print("Insecure: ", num_insecure)
+        #print("     Unique Insecure: ", unique_pieces_vulnerable_by_board)
+        #print("         Unique Secure no attempt: ", unique_secure_attempt_by_board )
+        #print(" ")
                 
         final_score = individual_board_scores[0]*abs(individual_board_scores[0]) + individual_board_scores[1]*abs(individual_board_scores[1]) + individual_board_scores[2]*abs(individual_board_scores[2]) + individual_board_scores[3]*abs(individual_board_scores[3]) 
         return final_score
@@ -917,6 +919,7 @@ class GameLogic:
         
         moves = self.getLegalMoves(board, repeated, turn)
 
+        turn = self.switch_01(turn) # change player pov
     
         if maximizing: # white to play (wants to maximize score)
             best = [-sys.maxsize, None, None, None] 
@@ -925,7 +928,7 @@ class GameLogic:
                 updated_board.boards = copy.deepcopy(board.boards)
                 self.updateBoard(move[0], move[1], move[2], piece, other_piece, updated_board)
                 repeated.append(updated_board)
-                turn = self.switch_01(turn) # change player pov
+                
                 score = self.minimax(updated_board, repeated, depth_size, depth-1,alpha,beta,False,turn, other_piece, piece)
                 repeated.pop()
                 if(score[0] > best[0] or (score[0] == best[0] and random.randrange(0,6) == 3)): # score value > best value, if its same updates with a certain probability
@@ -946,7 +949,7 @@ class GameLogic:
                 updated_board.boards = copy.deepcopy(board.boards)
                 self.updateBoard(move[0], move[1], move[2], piece, other_piece, updated_board)
                 repeated.append(updated_board)
-                turn = self.switch_01(turn) # change player pov
+
                 score = self.minimax(updated_board, repeated, depth_size, depth-1,alpha,beta,True,turn, other_piece, piece)
                 repeated.pop()
                 if(score[0] < best[0] or (score[0] == best[0] and random.randrange(0,6) == 3)): # score value < best value, if its same updates with a certain probability
