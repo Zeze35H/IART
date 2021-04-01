@@ -32,8 +32,8 @@ class Board:
         self.points_per_piece = 100
         self.points_per_extra_piece = [100,200,300]
         self.points_per_extra_piece_turn = [40,30,20,10]
-        self.points_per_unique_vulnerable = -15  # total unique pieces vulnerable on a given board
-        self.points_per_insecure = -1     # total attacks that kill on all pieces of a given board
+        self.points_per_unique_vulnerable = 20  # total unique pieces vulnerable on a given board
+        self.points_per_insecure = 1     # total attacks that kill on all pieces of a given board
         self.points_per_unique_secure = 15    # total unique secure pieces on a given board
 
 
@@ -927,6 +927,7 @@ class GameLogic:
         move_scores = []
         start_time = timeit.default_timer()
         elapsed2 = 0
+        
         for move in moves:
             updated_board = Board()
             # updated_board.boards = copy.deepcopy(board.boards)
