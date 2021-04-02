@@ -181,75 +181,93 @@ class Board:
 # hard -> tudo
 
 
-    def calcPoints(self, player, gameLogic):
+# -avaliaçao em ampulheta:
+#     -um board inimigo é tao bom quanto melhor for o board na diagonal (ataque)
+#     -um board amigo é tao bom quanto melhor for o board na hoizontal (ataque e fuga)
+
+    def calcPoints(self, player, difficulty, gameLogic):
               
         boards_num_pieces = self.countNumPieces()
 
         individual_board_scores = self.calcDiffNumPieces(boards_num_pieces, player)
-        #if(boards_num_pieces != [[4,4],[4,4],[4,4],[4,4]]):
-            #print(individual_board_scores)
-
-        #move: [passive_piece, agressive_piece , offset]
-        
-        
-        num_insecure = [0,0,0,0] #Left to right, up to down
-        unique_secure_attempt_by_board = [0,0,0,0]
-        unique_pieces_vulnerable = [] #[[homeboard,board,row,col],...]
-        unique_pieces_vulnerable_by_board = [0,0,0,0]
-
-        # calcular peças inseguras
-        if(player == 1): # black player
-            black_moves = gameLogic.getLegalMoves(self, [], 1)
-            for black_move in black_moves:
-                aux_board = Board()
-                # aux_board.boards = copy.deepcopy(self.boards)
-                aux_board.boards = self.copyBoard()
-                result = gameLogic.updateBoard(black_move[0], black_move[1], black_move[2], "B", "W", aux_board)
-                
-                homeboard = black_move[1][0] # homeboard
-                color_board = black_move[1][1] # color_board
-                
-                if(result[0]): # if white piece is pushed off the board
-                    num_insecure[homeboard*2 + color_board] += 1
-                    try:
-                        unique_pieces_vulnerable.index(result[2]) # only add if not already there
-                    except ValueError:
-                        unique_pieces_vulnerable.append(result[2])
-                        unique_pieces_vulnerable_by_board[homeboard*2 + color_board] += 1
-                
-        else: #white player
-            white_moves = gameLogic.getLegalMoves(self, [], 0)
-            for white_move in white_moves:
-                aux_board = Board()
-                #aux_board.boards = copy.deepcopy(self.boards)
-                aux_board.boards = self.copyBoard()
-                result = gameLogic.updateBoard(white_move[0], white_move[1], white_move[2], "W", "B", aux_board)
-                
-                homeboard = white_move[1][0] # homeboard
-                color_board = white_move[1][1] # color_board
-                
-                if(result[0]): # if white piece is pushed off the board
-                    num_insecure[homeboard*2 + color_board] += 1
-                    try:
-                        unique_pieces_vulnerable.index(result[2]) # only add if not already there
-                    except ValueError:
-                        unique_pieces_vulnerable.append(result[2])
-                        unique_pieces_vulnerable_by_board[homeboard*2 + color_board] += 1
-            
-        for i in range(4):
-            if player == 1: 
-                unique_secure_attempt_by_board[i]= boards_num_pieces[i][0] - unique_pieces_vulnerable_by_board[i] # check total white pieces - total white vulnerable pieces
-            else: 
-                unique_secure_attempt_by_board[i]= boards_num_pieces[i][1] - unique_pieces_vulnerable_by_board[i] # check total black pieces - total black vulnerable pieces
        
-        for i in range(4):
-            value = unique_secure_attempt_by_board[i]*self.points_per_unique_secure - unique_pieces_vulnerable_by_board[i]*self.points_per_unique_vulnerable - num_insecure[i]*self.points_per_insecure
-            if player == 1:
-                individual_board_scores[i] += value
-            else:
-                individual_board_scores[i] -= value
+        
+       
+        if(difficulty == 3):
+            
+            num_insecure = [0,0,0,0] #Left to right, up to down
+            unique_secure_attempt_by_board = [0,0,0,0]
+            unique_pieces_vulnerable = [] #[[homeboard,board,row,col],...]
+            unique_pieces_vulnerable_by_board = [0,0,0,0]
+    
+            # calcular peças inseguras
+            if(player == 1): # black player
+                black_moves = gameLogic.getLegalMoves(self, [], 1)
+                for black_move in black_moves:
+                    aux_board = Board()
+                    # aux_board.boards = copy.deepcopy(self.boards)
+                    aux_board.boards = self.copyBoard()
+                    result = gameLogic.updateBoard(black_move[0], black_move[1], black_move[2], "B", "W", aux_board)
+                    
+                    homeboard = black_move[1][0] # homeboard
+                    color_board = black_move[1][1] # color_board
+                    
+                    if(result[0]): # if white piece is pushed off the board
+                        num_insecure[homeboard*2 + color_board] += 1
+                        try:
+                            unique_pieces_vulnerable.index(result[2]) # only add if not already there
+                        except ValueError:
+                            unique_pieces_vulnerable.append(result[2])
+                            unique_pieces_vulnerable_by_board[homeboard*2 + color_board] += 1
+                    
+            else: #white player
+                white_moves = gameLogic.getLegalMoves(self, [], 0)
+                for white_move in white_moves:
+                    aux_board = Board()
+                    #aux_board.boards = copy.deepcopy(self.boards)
+                    aux_board.boards = self.copyBoard()
+                    result = gameLogic.updateBoard(white_move[0], white_move[1], white_move[2], "W", "B", aux_board)
+                    
+                    homeboard = white_move[1][0] # homeboard
+                    color_board = white_move[1][1] # color_board
+                    
+                    if(result[0]): # if white piece is pushed off the board
+                        num_insecure[homeboard*2 + color_board] += 1
+                        try:
+                            unique_pieces_vulnerable.index(result[2]) # only add if not already there
+                        except ValueError:
+                            unique_pieces_vulnerable.append(result[2])
+                            unique_pieces_vulnerable_by_board[homeboard*2 + color_board] += 1
                 
-        final_score = individual_board_scores[0]*abs(individual_board_scores[0]) + individual_board_scores[1]*abs(individual_board_scores[1]) + individual_board_scores[2]*abs(individual_board_scores[2]) + individual_board_scores[3]*abs(individual_board_scores[3]) 
+            for i in range(4):
+                if player == 1: 
+                    unique_secure_attempt_by_board[i]= boards_num_pieces[i][0] - unique_pieces_vulnerable_by_board[i] # check total white pieces - total white vulnerable pieces
+                else: 
+                    unique_secure_attempt_by_board[i]= boards_num_pieces[i][1] - unique_pieces_vulnerable_by_board[i] # check total black pieces - total black vulnerable pieces
+           
+            for i in range(4):
+                value = unique_secure_attempt_by_board[i]*self.points_per_unique_secure - unique_pieces_vulnerable_by_board[i]*self.points_per_unique_vulnerable - num_insecure[i]*self.points_per_insecure
+                if player == 1:
+                    individual_board_scores[i] += value
+                else:
+                    individual_board_scores[i] -= value
+        
+        if(difficulty != 1):
+            final_score = individual_board_scores[0]*abs(individual_board_scores[0]) + individual_board_scores[1]*abs(individual_board_scores[1]) + individual_board_scores[2]*abs(individual_board_scores[2]) + individual_board_scores[3]*abs(individual_board_scores[3]) 
+        else:
+            final_score = individual_board_scores[0] + individual_board_scores[1]+ individual_board_scores[2] + individual_board_scores[3]
+
+        
+        # secure_avg = sum(unique_secure_attempt_by_board)/len(unique_secure_attempt_by_board)
+        # vulnerable_avg = sum(unique_pieces_vulnerable_by_board)/len(unique_pieces_vulnerable_by_board)
+        
+        # print(boards_num_pieces)
+        # print("secure ",unique_secure_attempt_by_board, secure_avg)
+        # print("insecure ",unique_pieces_vulnerable_by_board, vulnerable_avg)
+        # print("")
+  
+        
+        
         return final_score
         
 
@@ -777,7 +795,7 @@ class GameLogic:
         if(color == 'White'):
             maximizing = True
             
-        depth = 3
+        depth = 2
         
         best_move = self.minimax(self.board, self.boards_history, depth, depth, -sys.maxsize, sys.maxsize, maximizing, self.player, piece, other_piece)
         return self.updateBoard(best_move[1], best_move[2], best_move[3], piece, other_piece, self.board)[0]
@@ -921,25 +939,34 @@ class GameLogic:
         print("\nGAME OVER! WINNER IS: " + winner)
 
     
-    def sortMoves(self, board, repeated, turn, piece, other_piece):
+    def sortMoves(self, board, repeated, turn, piece, other_piece, difficulty):
 
+        
+        start_time1 = timeit.default_timer()
         moves = self.getLegalMoves(board, repeated, turn)
+        elapsed1 = timeit.default_timer() - start_time1
+        print("- getLegal: ", elapsed1)
+        
+        
         move_scores = []
-        start_time = timeit.default_timer()
         elapsed2 = 0
+        
+        if(difficulty == 3):
+            difficulty == 2
         
         for move in moves:
             updated_board = Board()
             # updated_board.boards = copy.deepcopy(board.boards)
             updated_board.boards = board.copyBoard()
             self.updateBoard(move[0], move[1], move[2], piece, other_piece, updated_board)
+            
             start_time2 = timeit.default_timer()
-            move_score = board.calcPoints(turn, self)
+            move_score = board.calcPoints(turn, difficulty, self)
             elapsed2 += timeit.default_timer() - start_time2
+            
             move_scores.append([move, move_score])
-        print("----->Calc: ", elapsed2)
-        elapsed = timeit.default_timer() - start_time
-        print("|||" , elapsed)
+        print("- calcPoints: ", elapsed2)
+
 
 
         if turn == 1:
@@ -954,18 +981,35 @@ class GameLogic:
 
     def minimax(self, board, repeated, depth_size, depth, alpha, beta, maximizing, turn, piece, other_piece):
         
+        if(self.mode == 2):
+            difficulty = self.difficulty
+        elif(self.mode == 3):
+            if(turn == 1): # black player
+                difficulty = self.difficultyBlack
+            else:
+                difficulty = self.difficultyWhite
+        else:
+            exit()
+        
+        
         if depth == 0:
-            return  [board.calcPoints(turn, self), None, None, None]
+            return  [board.calcPoints(turn, difficulty, self), None, None, None]
         
-        moves = self.getLegalMoves(board, repeated, turn)
+        moves_sorted = self.getLegalMoves(board, repeated, turn)
+        # start_time = timeit.default_timer()
+        # moves_sorted = self.sortMoves(board, repeated, turn, piece, other_piece, difficulty)
+        # elapsed2 = timeit.default_timer() - start_time
         
-        #moves_sorted = self.sortMoves(board, repeated, turn, piece, other_piece)
+        # print(len(moves_sorted))
+        # print(elapsed2)
+        # print("")
+        
         
         turn = self.switch_01(turn) # change player pov
     
         if maximizing: # white to play (wants to maximize score)
             best = [-sys.maxsize, None, None, None] 
-            for move in moves:
+            for move in moves_sorted:
                 updated_board = Board()
                 # updated_board.boards = copy.deepcopy(board.boards)
                 updated_board.boards = board.copyBoard()
@@ -987,7 +1031,7 @@ class GameLogic:
 
         else: # black to play (wants to minimize score)
             best = [sys.maxsize, None, None, None] 
-            for move in moves:
+            for move in moves_sorted:
                 updated_board = Board()
                 # updated_board.boards = copy.deepcopy(board.boards)
                 updated_board.boards = board.copyBoard()
