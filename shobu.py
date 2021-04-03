@@ -505,11 +505,11 @@ class GameLogic:
 
         for row in range(4):
             for col in range(4):
-                if(board.boards[0][other_color][row][col] == piece):
-                    if(self.verifyDirection(board, 0, other_color, row, col, offset, piece, other_piece)):
+                if(board.boards[0][other_color][row][col] == piece): 
+                    if(self.verifyDirection(board, 0, other_color, row, col, offset, piece, other_piece)): # searches for agressive moves in white homeboard 
                         options1.append([row, col])
                 if(board.boards[1][other_color][row][col] == piece):
-                    if(self.verifyDirection(board, 1, other_color, row, col, offset, piece, other_piece)):
+                    if(self.verifyDirection(board, 1, other_color, row, col, offset, piece, other_piece)): # searches for agressive moves in black homeboard 
                         options2.append([row, col])
 
         return [options1, options2]
@@ -707,10 +707,9 @@ class GameLogic:
         while(True):
             offset, color_side, passive_selected = self.passiveMove(color,piece, other_piece)
     
-            other_color = self.switch_01(color_side)
+            other_color = self.switch_01(color_side) # change color_side, since agressive move must be made in opposite color_side
     
-            agressive_selected, player_side = self.agressiveMove(
-                offset, other_color, piece, other_piece)
+            agressive_selected, player_side = self.agressiveMove(offset, other_color, piece, other_piece)
     
             if(agressive_selected is not None and player_side is not None):
                 break
@@ -963,13 +962,12 @@ class GameLogic:
             elapsed = timeit.default_timer() - start_time
             print("\n| Elapsed Time on This Turn: ", elapsed)
             sum+= elapsed
-            print(
-                "\n=====================================================================")
+            print("\n=====================================================================")
             
         print("\n=====================================================================")
         self.board.display()
         print("\nGAME OVER! WINNER IS: " + winner)
-        print("Total Time: ", sum)
+        print("\nTotal Time: ", sum)
 
     
     # def sortMoves(self, board, repeated, turn, piece, other_piece):       
