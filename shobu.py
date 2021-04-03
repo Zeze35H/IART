@@ -1,3 +1,4 @@
+import numpy
 import signal
 import sys
 import time
@@ -104,9 +105,9 @@ class Board:
         individual_board_scores = []
         for board_num_pieces in boards_num_pieces:
             if(board_num_pieces[0] == 0): # 0 white pieces, black won
-                score = -1000000
+                score = -100000000
             elif(board_num_pieces[1] == 0): # 0 black pieces, white won
-                score = 1000000
+                score = 100000000
             else:
                 # +/- points_per_piece
                 score = (board_num_pieces[0] - board_num_pieces[1])*self.points_per_piece 
@@ -167,86 +168,10 @@ class Board:
         boards_num_pieces = self.countNumPieces()
 
         individual_board_scores = self.calcDiffNumPieces(boards_num_pieces, player)
-       
-        
-       
-        if(difficulty == 3):
-            
-            num_insecure = [0,0,0,0] #Left to right, up to down
-            unique_secure_attempt_by_board = [0,0,0,0]
-            unique_pieces_vulnerable = [] #[[homeboard,board,row,col],...]
-            unique_pieces_vulnerable_by_board = [0,0,0,0]
-    
-            # calcular peças inseguras
-            if(player == 1): # black player
-                black_moves = gameLogic.getLegalMoves(self, [], 1)
-                for black_move in black_moves:
-                    aux_board = Board()
-                    # aux_board.boards = copy.deepcopy(self.boards)
-                    # aux_board.boards = self.copyBoard()
-                    aux_board.boards = numpy.copy(self.boards)
-                    result = gameLogic.updateBoard(black_move[0], black_move[1], black_move[2], "B", "W", aux_board)
-                    
-                    homeboard = black_move[1][0] # homeboard
-                    color_board = black_move[1][1] # color_board
-                    
-                    if(result[0]): # if white piece is pushed off the board
-                        num_insecure[homeboard*2 + color_board] += 1
-                        try:
-                            unique_pieces_vulnerable.index(result[2]) # only add if not already there
-                        except ValueError:
-                            unique_pieces_vulnerable.append(result[2])
-                            unique_pieces_vulnerable_by_board[homeboard*2 + color_board] += 1
-                    
-            else: #white player
-                white_moves = gameLogic.getLegalMoves(self, [], 0)
-                for white_move in white_moves:
-                    aux_board = Board()
-                    #aux_board.boards = copy.deepcopy(self.boards)
-                    # aux_board.boards = self.copyBoard()
-                    aux_board.boards = numpy.copy(self.boards)
-                    result = gameLogic.updateBoard(white_move[0], white_move[1], white_move[2], "W", "B", aux_board)
-                    
-                    homeboard = white_move[1][0] # homeboard
-                    color_board = white_move[1][1] # color_board
-                    
-                    if(result[0]): # if white piece is pushed off the board
-                        num_insecure[homeboard*2 + color_board] += 1
-                        try:
-                            unique_pieces_vulnerable.index(result[2]) # only add if not already there
-                        except ValueError:
-                            unique_pieces_vulnerable.append(result[2])
-                            unique_pieces_vulnerable_by_board[homeboard*2 + color_board] += 1
-                
-            for i in range(4):
-                if player == 1: 
-                    unique_secure_attempt_by_board[i]= boards_num_pieces[i][0] - unique_pieces_vulnerable_by_board[i] # check total white pieces - total white vulnerable pieces
-                else: 
-                    unique_secure_attempt_by_board[i]= boards_num_pieces[i][1] - unique_pieces_vulnerable_by_board[i] # check total black pieces - total black vulnerable pieces
-           
-            for i in range(4):
-                value = unique_secure_attempt_by_board[i]*self.points_per_unique_secure - unique_pieces_vulnerable_by_board[i]*self.points_per_unique_vulnerable - num_insecure[i]*self.points_per_insecure
-                if player == 1:
-                    individual_board_scores[i] += value
-                else:
-                    individual_board_scores[i] -= value
-        
-        if(difficulty != 1):
-            final_score = individual_board_scores[0]*abs(individual_board_scores[0]) + individual_board_scores[1]*abs(individual_board_scores[1]) + individual_board_scores[2]*abs(individual_board_scores[2]) + individual_board_scores[3]*abs(individual_board_scores[3]) 
-        else:
-            final_score = individual_board_scores[0] + individual_board_scores[1]+ individual_board_scores[2] + individual_board_scores[3]
 
-        
-        # secure_avg = sum(unique_secure_attempt_by_board)/len(unique_secure_attempt_by_board)
-        # vulnerable_avg = sum(unique_pieces_vulnerable_by_board)/len(unique_pieces_vulnerable_by_board)
-        
-        # print(boards_num_pieces)
-        # print("secure ",unique_secure_attempt_by_board, secure_avg)
-        # print("insecure ",unique_pieces_vulnerable_by_board, vulnerable_avg)
-        # print("")
+        final_score = individual_board_scores[0]*abs(individual_board_scores[0]) + individual_board_scores[1]*abs(individual_board_scores[1]) + individual_board_scores[2]*abs(individual_board_scores[2]) + individual_board_scores[3]*abs(individual_board_scores[3]) 
   
-        
-        
+
         return final_score
         
 
@@ -268,9 +193,11 @@ class GameLogic:
         self.boards_history = [] #boards that have already been played, in order to avoid them
         
         self.playerColor = None
-        self.difficulty = None
+        self.difficulty = None # 1.Easy 2.Medium 3.Hard
         self.difficultyWhite = None
         self.difficultyBlack = None
+        self.cntComWhiteMove = 0 #number or computer white moves
+        self.cntComBlackMove = 0
 
     # =============================================================================
     #  AUX FUNTIONS
@@ -716,9 +643,6 @@ class GameLogic:
 
     #     return moves
 
-
-
-
     # displays agressive move options and lets player choose one; returns selected piece (or 0 if player wants to re-select passive move)
 
     def agressiveMoveOptions(self, color_side, options):
@@ -860,9 +784,48 @@ class GameLogic:
         maximizing = False
         if(color == 'White'):
             maximizing = True
-            
-        depth = 2
-        
+            self.cntComWhiteMove += 1
+            if self.difficultyWhite == 0 or self.difficulty == 0: #Super Easy
+                legal_moves = self.getLegalMoves(self.board,[],0)
+                length = len(legal_moves) - 1
+                if length < 0:
+                    print ("Black Won, white has no moves")
+                    os.exit(0)
+                index = random.randrange(0,length)
+                best_move = legal_moves[index]
+                return self.updateBoard(best_move[0], best_move[1], best_move[2], piece, other_piece, self.board)[0]
+            elif self.difficultyWhite == 1 or self.difficulty == 1: #Easy
+                depth = 1
+            elif self.difficultyWhite == 2 or self.difficulty == 2: #Medium
+                depth = 2
+            elif self.difficultyWhite == 3 or self.difficulty == 3: #Hard
+                depth = 3
+            elif self.difficultyWhite == 4 or self.difficulty == 4: #Dynamic Hard
+                depth = 2
+                if self.cntComWhiteMove > 5:
+                    depth = 3
+        else:
+            self.cntComBlackMove += 1
+            if self.difficultyBlack == 0 or self.difficulty == 0: #Super Easy
+                legal_moves = self.getLegalMoves(self.board,[],1)
+                length = len(legal_moves) - 1
+                if length < 0:
+                    print ("White Won, black has no moves")
+                    os.exit(0)
+                index = random.randrange(0,length)
+                best_move = legal_moves[index]
+                return self.updateBoard(best_move[0], best_move[1], best_move[2], piece, other_piece, self.board)[0]
+            elif self.difficultyBlack == 1 or self.difficulty == 1: #Easy
+                depth = 1
+            elif self.difficultyBlack == 2 or self.difficulty == 2: #Medium
+                depth = 2
+            elif self.difficultyBlack == 3 or self.difficulty == 3: #Hard
+                depth = 3
+            elif self.difficultyBlack == 4 or self.difficulty == 4: #Dynamic Hard
+                depth = 2
+                if self.cntComBlackMove > 5:
+                    depth = 3
+ 
         best_move = self.minimax(self.board, self.boards_history, depth, depth, -sys.maxsize, sys.maxsize, maximizing, self.player, piece, other_piece)
         return self.updateBoard(best_move[1], best_move[2], best_move[3], piece, other_piece, self.board)[0]
 
@@ -878,11 +841,11 @@ class GameLogic:
             if(self.player == self.playerColor):
                 return self.playerMove(color, piece, other_piece)  
             else:
-                return self.computerMove(color, depth, prune, piece, other_piece,)
+                return self.computerMove(color, depth, prune, piece, other_piece)
                 
 
         else: # CvC
-            return self.computerMove(color, depth, prune, piece, other_piece,)
+            return self.computerMove(color, depth, prune, piece, other_piece)
 
 
     # calls passive and agressive move functions; returns True if an enemy piece was pushed out of the board, else False
@@ -966,21 +929,21 @@ class GameLogic:
             
 
             difficulty = 0
-            print("\n   1.Easy                 2.Medium                  3.Hard   ")
-            while(difficulty < 1 or difficulty > 3):
+            print("\n 0.Super Easy     1.Easy         2.Medium          3.Hard         4.Dynamic Hard")
+            while(difficulty < 1 or difficulty > 4):
                 difficulty = int(input("\nChoose difficulty for COM: "))
             self.difficulty = difficulty
 
         if(mode == 3):
-            difficultyWhite = 0
-            print("\n   1.Easy                 2.Medium                  3.Hard   ")
-            while(difficultyWhite < 1 or difficultyWhite > 3):
+            difficultyWhite = -1
+            print("\n 0.Super Easy     1.Easy         2.Medium          3.Hard         4.Dynamic Hard")
+            while(difficultyWhite < 0 or difficultyWhite > 4):
                 difficultyWhite = int(input("\nChoose difficulty for White: "))
             self.difficultyWhite = difficultyWhite
 
-            difficultyBlack = 0
-            print("\n   1.Easy                 2.Medium                  3.Hard   ")
-            while(difficultyBlack < 1 or difficultyBlack > 3):
+            difficultyBlack = -1
+            print("\n 0.Super Easy     1.Easy         2.Medium          3.Hard         4.Dynamic Hard")
+            while(difficultyBlack < 0 or difficultyBlack > 4):
                 difficultyBlack = int(input("\nChoose difficulty for Black: "))
             self.difficultyBlack = difficultyBlack
 

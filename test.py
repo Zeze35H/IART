@@ -67,6 +67,10 @@ def main():
     print("1:4 CopyBoard Elapsed Time: ", elapsed)
 
     
+<<<<<<< HEAD
+=======
+
+>>>>>>> 8676893f9b47011d5940770f32614240c8af8628
 
 
 
