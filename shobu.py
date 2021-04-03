@@ -510,8 +510,6 @@ class GameLogic:
 
     def passiveMove(self, color):
         while(True):
-          
-            self.board.display()
 
             print("\n> > "+color+" player's turn:")
 
@@ -795,7 +793,7 @@ class GameLogic:
         if(color == 'White'):
             maximizing = True
             
-        depth = 2
+        depth = 3
         
         best_move = self.minimax(self.board, self.boards_history, depth, depth, -sys.maxsize, sys.maxsize, maximizing, self.player, piece, other_piece)
         return self.updateBoard(best_move[1], best_move[2], best_move[3], piece, other_piece, self.board)[0]
@@ -918,6 +916,7 @@ class GameLogic:
             self.difficultyBlack = difficultyBlack
 
     def run(self):
+        start_time_total = timeit.default_timer() 
         while(True):
             start_time = timeit.default_timer()
             self.board.display()
@@ -937,6 +936,8 @@ class GameLogic:
         print("\n=====================================================================")
         self.board.display()
         print("\nGAME OVER! WINNER IS: " + winner)
+        elapsed_total = timeit.default_timer() - start_time_total
+        print("||||||||| Elapsed Time Total: ", elapsed_total)
 
     
     def sortMoves(self, board, repeated, turn, piece, other_piece, difficulty):
@@ -945,7 +946,7 @@ class GameLogic:
         start_time1 = timeit.default_timer()
         moves = self.getLegalMoves(board, repeated, turn)
         elapsed1 = timeit.default_timer() - start_time1
-        print("- getLegal: ", elapsed1)
+        #print("- getLegal: ", elapsed1)
         
         
         move_scores = []
@@ -965,18 +966,17 @@ class GameLogic:
             elapsed2 += timeit.default_timer() - start_time2
             
             move_scores.append([move, move_score])
-        print("- calcPoints: ", elapsed2)
+        #print("- calcPoints: ", elapsed2)
 
 
 
         if turn == 1:
-            best_move = min(move_scores, key= lambda move_score : move_score[1]) #ascending order, for black
-
+            best_move = sorted(move_scores, key= lambda move_score : move_score[1]) #ascending order, for black
         else:
-            best_move = max(move_scores, key= lambda move_score : move_score[1])
+            best_move = sorted(move_scores, key= lambda move_score : move_score[1], reverse=True)
 
-        moves.remove(best_move[0])
-        moves.insert(0, best_move[0])
+        #moves.remove(best_move[0])
+        #moves.insert(0, best_move[0])
         return moves
 
     def minimax(self, board, repeated, depth_size, depth, alpha, beta, maximizing, turn, piece, other_piece):
@@ -997,7 +997,7 @@ class GameLogic:
         
         moves_sorted = self.getLegalMoves(board, repeated, turn)
         # start_time = timeit.default_timer()
-        # moves_sorted = self.sortMoves(board, repeated, turn, piece, other_piece, difficulty)
+        #moves_sorted = self.sortMoves(board, repeated, turn, piece, other_piece, difficulty)
         # elapsed2 = timeit.default_timer() - start_time
         
         # print(len(moves_sorted))
