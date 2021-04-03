@@ -1,9 +1,9 @@
-import copy
 import signal
 import sys
 import time
 import timeit
 import random
+import numpy
 
 def signal_handler(sig, frame):
     print('\n\nExiting...')
@@ -57,24 +57,7 @@ class Board:
                          [' ', ' ', ' ', ' '],
                          ['B', 'B', 'B', 'B']]]]
         
-        
-    def copyBoard(self):
-        
-        result = []
-        for homeboard in range(2):
-            homeboard_aux  = []
-            for board in range(2):
-                board_aux = []
-                for row in range(4):
-                    row_aux = []
-                    for col in range(4):
-                        row_aux.append(self.boards[homeboard][board][row][col]) # add element
-                    board_aux.append(row_aux) # add row
-                homeboard_aux.append(board_aux) # add board
-            result.append(homeboard_aux) # add homeboard
-            
-        return result                
-                        
+                               
                         
     def displayHomeboard(self, color, color_string, row_number):
 
@@ -111,14 +94,8 @@ class Board:
         score_num_pieces = []
         for homeboard in range(2):
             for board in range(2):
-                num_black = 0
-                num_white = 0
-                for row in range(4):
-                    for col in range(4):
-                        if(self.boards[homeboard][board][row][col] == "B"):
-                            num_black += 1
-                        elif(self.boards[homeboard][board][row][col] == "W"):
-                            num_white += 1
+                num_black = numpy.count_nonzero(self.boards[homeboard][board] == "B")
+                num_white = numpy.count_nonzero(self.boards[homeboard][board] == "W")
                 score_num_pieces.append([num_white, num_black])
         return score_num_pieces
     
@@ -206,7 +183,8 @@ class Board:
                 for black_move in black_moves:
                     aux_board = Board()
                     # aux_board.boards = copy.deepcopy(self.boards)
-                    aux_board.boards = self.copyBoard()
+                    # aux_board.boards = self.copyBoard()
+                    aux_board.boards = numpy.copy(self.boards)
                     result = gameLogic.updateBoard(black_move[0], black_move[1], black_move[2], "B", "W", aux_board)
                     
                     homeboard = black_move[1][0] # homeboard
@@ -225,7 +203,8 @@ class Board:
                 for white_move in white_moves:
                     aux_board = Board()
                     #aux_board.boards = copy.deepcopy(self.boards)
-                    aux_board.boards = self.copyBoard()
+                    # aux_board.boards = self.copyBoard()
+                    aux_board.boards = numpy.copy(self.boards)
                     result = gameLogic.updateBoard(white_move[0], white_move[1], white_move[2], "W", "B", aux_board)
                     
                     homeboard = white_move[1][0] # homeboard
@@ -274,7 +253,7 @@ class Board:
                 
     def isNotRepeated(self, repeated):
         for board in repeated:
-            if(self.boards == board.boards):
+            if(numpy.array_equal(self.boards, board.boards, equal_nan=False)):
                 return False
         return True
         
@@ -438,7 +417,8 @@ class GameLogic:
         if(is_human):
             aux_board = Board()
             # aux_board.boards = copy.deepcopy(board.boards)            
-            aux_board.boards = board.copyBoard()
+            # aux_board.boards = board.copyBoard()
+            aux_board.boards = numpy.copy(board.boards)
         options = []
 
         for i in range(row_index - 2, row_index + 3):  # 2 rows behind, 2 rows ahead
@@ -605,7 +585,8 @@ class GameLogic:
                                 for agressive_move in agressive_moves[0]:
                                     aux_board = Board()
                                     # aux_board.boards = copy.deepcopy(gameboard.boards)
-                                    aux_board.boards = gameboard.copyBoard()
+                                    # aux_board.boards = gameboard.copyBoard()
+                                    aux_board.boards = numpy.copy(gameboard.boards)
                                     self.updateBoard([homeboard,board,row,col], [0,other_color,agressive_move[0],agressive_move[1]], offset, "B", "W", aux_board)
                                     if(aux_board.isNotRepeated(repeated)):
                                         moves.append([[homeboard,board,row,col], [0,other_color,agressive_move[0],agressive_move[1]], offset])
@@ -613,7 +594,8 @@ class GameLogic:
                                 for agressive_move in agressive_moves[1]:
                                     aux_board = Board()
                                     # aux_board.boards = copy.deepcopy(gameboard.boards)
-                                    aux_board.boards = gameboard.copyBoard()
+                                    # aux_board.boards = gameboard.copyBoard()
+                                    aux_board.boards = numpy.copy(gameboard.boards)
                                     self.updateBoard([homeboard,board,row,col], [1,other_color,agressive_move[0],agressive_move[1]], offset, "B", "W", aux_board)
                                     if(aux_board.isNotRepeated(repeated)):
                                         moves.append([[homeboard,board,row,col], [1,other_color,agressive_move[0],agressive_move[1]], offset])
@@ -628,7 +610,8 @@ class GameLogic:
                                 for agressive_move in agressive_moves[0]:
                                     aux_board = Board()
                                     # aux_board.boards = copy.deepcopy(gameboard.boards)
-                                    aux_board.boards = gameboard.copyBoard()
+                                    # aux_board.boards = gameboard.copyBoard()
+                                    aux_board.boards = numpy.copy(gameboard.boards)
                                     self.updateBoard([homeboard,board,row,col], [0,other_color,agressive_move[0],agressive_move[1]], offset, "W", "B", aux_board)
                                     if(aux_board.isNotRepeated(repeated)):
                                         moves.append([[homeboard,board,row,col], [0,other_color,agressive_move[0],agressive_move[1]], offset])
@@ -636,7 +619,8 @@ class GameLogic:
                                 for agressive_move in agressive_moves[1]:
                                     aux_board = Board()
                                     # aux_board.boards = copy.deepcopy(gameboard.boards)
-                                    aux_board.boards = gameboard.copyBoard()
+                                    # aux_board.boards = gameboard.copyBoard()
+                                    aux_board.boards = numpy.copy(gameboard.boards)
                                     self.updateBoard([homeboard,board,row,col], [1,other_color,agressive_move[0],agressive_move[1]], offset, "W", "B", aux_board)
                                     if(aux_board.isNotRepeated(repeated)):
                                         moves.append([[homeboard,board,row,col], [1,other_color,agressive_move[0],agressive_move[1]], offset])
@@ -646,7 +630,91 @@ class GameLogic:
 
         return moves
 
+    # def getLegalMovesVulnerables(self, gameboard, repeated, player, num_insecure, unique_pieces_vulnerable, unique_pieces_vulnerable_by_board):
 
+    #     #start_time = timeit.default_timer()
+
+    #     moves = []
+        
+    #     for homeboard in range(2):
+    #         for board in range(2):
+    #             for row in range(4):
+    #                 for col in range(4):
+    #                     if(player == 1 and gameboard.boards[homeboard][board][row][col] == "B" and homeboard == 1): # If black player and black piece on black HB
+    #                         passive_moves = self.legalPassiveMoves(gameboard ,homeboard, board, row, col, False)
+    #                         for passive_move in passive_moves:
+    #                             offset = [passive_move[0]-row, passive_move[1]-col]
+    #                             other_color = self.switch_01(board)
+    #                             agressive_moves = self.legalAgressiveMoves(gameboard, offset, other_color, "B", "W")
+                                
+    #                             for agressive_move in agressive_moves[0]:
+    #                                 aux_board = Board()
+    #                                 # aux_board.boards = copy.deepcopy(gameboard.boards)
+    #                                 aux_board.boards = gameboard.copyBoard()
+    #                                 result = self.updateBoard([homeboard,board,row,col], [0,other_color,agressive_move[0],agressive_move[1]], offset, "B", "W", aux_board)
+    #                                 if(aux_board.isNotRepeated(repeated)):
+    #                                     if(result[0]): # if white piece is pushed off the board
+    #                                         num_insecure[homeboard*2 + color_board] += 1
+    #                                         try:
+    #                                             unique_pieces_vulnerable.index(result[2]) # only add if not already there
+    #                                         except ValueError:
+    #                                             unique_pieces_vulnerable.append(result[2])
+    #                                             unique_pieces_vulnerable_by_board[homeboard*2 + color_board] += 1
+                                        
+                                
+    #                             for agressive_move in agressive_moves[1]:
+    #                                 aux_board = Board()
+    #                                 # aux_board.boards = copy.deepcopy(gameboard.boards)
+    #                                 aux_board.boards = gameboard.copyBoard()
+    #                                 self.updateBoard([homeboard,board,row,col], [1,other_color,agressive_move[0],agressive_move[1]], offset, "B", "W", aux_board)
+    #                                 if(aux_board.isNotRepeated(repeated)):
+    #                                     if(result[0]): # if white piece is pushed off the board
+    #                                         num_insecure[homeboard*2 + color_board] += 1
+    #                                         try:
+    #                                             unique_pieces_vulnerable.index(result[2]) # only add if not already there
+    #                                         except ValueError:
+    #                                             unique_pieces_vulnerable.append(result[2])
+    #                                             unique_pieces_vulnerable_by_board[homeboard*2 + color_board] += 1
+
+    #                     elif(player == 0 and gameboard.boards[homeboard][board][row][col] == "W" and homeboard == 0): #If white player and white piece on white HB
+    #                         passive_moves = self.legalPassiveMoves(gameboard ,homeboard, board, row, col, False)
+    #                         for passive_move in passive_moves:
+    #                             offset = [passive_move[0]-row, passive_move[1]-col]
+    #                             other_color = self.switch_01(board)
+    #                             agressive_moves = self.legalAgressiveMoves(gameboard, offset, other_color, "W", "B")
+                                
+    #                             for agressive_move in agressive_moves[0]:
+    #                                 aux_board = Board()
+    #                                 # aux_board.boards = copy.deepcopy(gameboard.boards)
+    #                                 aux_board.boards = gameboard.copyBoard()
+    #                                 self.updateBoard([homeboard,board,row,col], [0,other_color,agressive_move[0],agressive_move[1]], offset, "W", "B", aux_board)
+    #                                 if(aux_board.isNotRepeated(repeated)):
+    #                                     if(result[0]): # if white piece is pushed off the board
+    #                                         num_insecure[homeboard*2 + color_board] += 1
+    #                                         try:
+    #                                             unique_pieces_vulnerable.index(result[2]) # only add if not already there
+    #                                         except ValueError:
+    #                                             unique_pieces_vulnerable.append(result[2])
+    #                                             unique_pieces_vulnerable_by_board[homeboard*2 + color_board] += 1
+                                    
+    #                             for agressive_move in agressive_moves[1]:
+    #                                 aux_board = Board()
+    #                                 # aux_board.boards = copy.deepcopy(gameboard.boards)
+    #                                 aux_board.boards = gameboard.copyBoard()
+    #                                 self.updateBoard([homeboard,board,row,col], [1,other_color,agressive_move[0],agressive_move[1]], offset, "W", "B", aux_board)
+    #                                 if(aux_board.isNotRepeated(repeated)):
+    #                                     if(result[0]): # if white piece is pushed off the board
+    #                                         num_insecure[homeboard*2 + color_board] += 1
+    #                                         try:
+    #                                             unique_pieces_vulnerable.index(result[2]) # only add if not already there
+    #                                         except ValueError:
+    #                                             unique_pieces_vulnerable.append(result[2])
+    #                                             unique_pieces_vulnerable_by_board[homeboard*2 + color_board] += 1
+
+    #     #elapsed = timeit.default_timer() - start_time
+    #     #print("Elapsed Time on Legal Moves: ", elapsed)
+
+    #     return moves
 
 
 
@@ -793,7 +861,7 @@ class GameLogic:
         if(color == 'White'):
             maximizing = True
             
-        depth = 3
+        depth = 2
         
         best_move = self.minimax(self.board, self.boards_history, depth, depth, -sys.maxsize, sys.maxsize, maximizing, self.player, piece, other_piece)
         return self.updateBoard(best_move[1], best_move[2], best_move[3], piece, other_piece, self.board)[0]
@@ -834,7 +902,8 @@ class GameLogic:
 
         aux_board = Board()
         # aux_board.boards = copy.deepcopy(self.board)
-        aux_board.boards = self.board.copyBoard()
+        # aux_board.boards = self.board.copyBoard()
+        aux_board.boards = numpy.copy(self.board.boards)
         
         self.boards_history.append(aux_board)
 
@@ -958,7 +1027,8 @@ class GameLogic:
         for move in moves:
             updated_board = Board()
             # updated_board.boards = copy.deepcopy(board.boards)
-            updated_board.boards = board.copyBoard()
+            # updated_board.boards = board.copyBoard()
+            updated_board.boards = numpy.copy(board.boards)
             self.updateBoard(move[0], move[1], move[2], piece, other_piece, updated_board)
             
             start_time2 = timeit.default_timer()
@@ -1001,12 +1071,13 @@ class GameLogic:
             best = [-sys.maxsize, None, None, None] 
             for move in moves_sorted:
                 updated_board = Board()
-                updated_board.boards = board.copyBoard()
+                # updated_board.boards = board.copyBoard()
+                updated_board.boards = numpy.copy(board.boards)
                 self.updateBoard(move[0], move[1], move[2], piece, other_piece, updated_board)
                 repeated.append(updated_board)     
                 score = self.minimax(updated_board, repeated, depth_size, depth-1,alpha,beta,False,turn, other_piece, piece)
                 repeated.pop()
-                if(score[0] > best[0] or (score[0] == best[0] and random.randrange(0,6) == 3)): # score value > best value
+                if(score[0] > best[0] or (score[0] == best[0] and random.randrange(0,4) == 3)): # score value > best value
                     if(depth == depth_size):
                         best = [score[0], move[0], move[1], move[2]]
                     else:
@@ -1019,12 +1090,13 @@ class GameLogic:
             best = [sys.maxsize, None, None, None] 
             for move in moves_sorted:
                 updated_board = Board()
-                updated_board.boards = board.copyBoard()
+                # updated_board.boards = board.copyBoard()
+                updated_board.boards = numpy.copy(board.boards)
                 self.updateBoard(move[0], move[1], move[2], piece, other_piece, updated_board)
                 repeated.append(updated_board)
                 score = self.minimax(updated_board, repeated, depth_size, depth-1,alpha,beta,True,turn, other_piece, piece)
                 repeated.pop()
-                if(score[0] < best[0] or (score[0] == best[0] and random.randrange(0,6) == 3)): # score value < best value
+                if(score[0] < best[0] or (score[0] == best[0] and random.randrange(0,4) == 3)): # score value < best value
                     if(depth == depth_size):
                         best = [score[0], move[0], move[1], move[2]]
                     else:
