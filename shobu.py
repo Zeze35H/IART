@@ -942,7 +942,13 @@ class GameLogic:
         if depth == 0:
             return  [board.calcPoints(turn, difficulty, self), None, None, None]
         
-        moves_sorted = self.getLegalMoves(board, repeated, turn)        
+        moves_sorted = self.getLegalMoves(board, repeated, turn)      
+        if len(moves_sorted) < 0:
+            if turn:
+                print ("Black Won, white has no moves")
+            else:
+                print ("White Won, black has no moves")
+            os.exit(0)  
         turn = self.switch_01(turn) # change player pov
     
         if maximizing:      # white to play (wants to maximize score)
