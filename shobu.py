@@ -916,7 +916,7 @@ class GameLogic:
             self.difficultyBlack = difficultyBlack
 
     def run(self):
-        start_time_total = timeit.default_timer() 
+        sum=0
         while(True):
             start_time = timeit.default_timer()
             self.board.display()
@@ -933,11 +933,11 @@ class GameLogic:
                 "\n=====================================================================")
             elapsed = timeit.default_timer() - start_time
             print("||||||||| Elapsed Time on This Turn: ", elapsed)
+            sum+= elapsed
         print("\n=====================================================================")
         self.board.display()
         print("\nGAME OVER! WINNER IS: " + winner)
-        elapsed_total = timeit.default_timer() - start_time_total
-        print("||||||||| Elapsed Time Total: ", elapsed_total)
+        print("Total Time: ", sum)
 
     
     def sortMoves(self, board, repeated, turn, piece, other_piece, difficulty):
