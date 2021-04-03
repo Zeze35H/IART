@@ -1,4 +1,4 @@
-import copy
+import numpy
 import signal
 import sys
 import time
@@ -57,24 +57,7 @@ class Board:
                          [' ', ' ', ' ', ' '],
                          ['B', 'B', 'B', 'B']]]]
         
-        
-    def copyBoard(self):
-        
-        result = []
-        for homeboard in range(2):
-            homeboard_aux  = []
-            for board in range(2):
-                board_aux = []
-                for row in range(4):
-                    row_aux = []
-                    for col in range(4):
-                        row_aux.append(self.boards[homeboard][board][row][col]) # add element
-                    board_aux.append(row_aux) # add row
-                homeboard_aux.append(board_aux) # add board
-            result.append(homeboard_aux) # add homeboard
-            
-        return result                
-                        
+                               
                         
     def displayHomeboard(self, color, color_string, row_number):
 
@@ -111,14 +94,8 @@ class Board:
         score_num_pieces = []
         for homeboard in range(2):
             for board in range(2):
-                num_black = 0
-                num_white = 0
-                for row in range(4):
-                    for col in range(4):
-                        if(self.boards[homeboard][board][row][col] == "B"):
-                            num_black += 1
-                        elif(self.boards[homeboard][board][row][col] == "W"):
-                            num_white += 1
+                num_black = numpy.count_nonzero(self.boards[homeboard][board] == "B")
+                num_white = numpy.count_nonzero(self.boards[homeboard][board] == "W")
                 score_num_pieces.append([num_white, num_black])
         return score_num_pieces
     
@@ -206,7 +183,8 @@ class Board:
                 for black_move in black_moves:
                     aux_board = Board()
                     # aux_board.boards = copy.deepcopy(self.boards)
-                    aux_board.boards = self.copyBoard()
+                    # aux_board.boards = self.copyBoard()
+                    aux_board.boards = numpy.copy(self.boards)
                     result = gameLogic.updateBoard(black_move[0], black_move[1], black_move[2], "B", "W", aux_board)
                     
                     homeboard = black_move[1][0] # homeboard
@@ -225,7 +203,8 @@ class Board:
                 for white_move in white_moves:
                     aux_board = Board()
                     #aux_board.boards = copy.deepcopy(self.boards)
-                    aux_board.boards = self.copyBoard()
+                    # aux_board.boards = self.copyBoard()
+                    aux_board.boards = numpy.copy(self.boards)
                     result = gameLogic.updateBoard(white_move[0], white_move[1], white_move[2], "W", "B", aux_board)
                     
                     homeboard = white_move[1][0] # homeboard
@@ -274,7 +253,7 @@ class Board:
                 
     def isNotRepeated(self, repeated):
         for board in repeated:
-            if(self.boards == board.boards):
+            if(numpy.array_equal(self.boards, board.boards, equal_nan=False)):
                 return False
         return True
         
@@ -438,7 +417,8 @@ class GameLogic:
         if(is_human):
             aux_board = Board()
             # aux_board.boards = copy.deepcopy(board.boards)            
-            aux_board.boards = board.copyBoard()
+            # aux_board.boards = board.copyBoard()
+            aux_board.boards = numpy.copy(board.boards)
         options = []
 
         for i in range(row_index - 2, row_index + 3):  # 2 rows behind, 2 rows ahead
@@ -605,7 +585,8 @@ class GameLogic:
                                 for agressive_move in agressive_moves[0]:
                                     aux_board = Board()
                                     # aux_board.boards = copy.deepcopy(gameboard.boards)
-                                    aux_board.boards = gameboard.copyBoard()
+                                    # aux_board.boards = gameboard.copyBoard()
+                                    aux_board.boards = numpy.copy(gameboard.boards)
                                     self.updateBoard([homeboard,board,row,col], [0,other_color,agressive_move[0],agressive_move[1]], offset, "B", "W", aux_board)
                                     if(aux_board.isNotRepeated(repeated)):
                                         moves.append([[homeboard,board,row,col], [0,other_color,agressive_move[0],agressive_move[1]], offset])
@@ -613,7 +594,8 @@ class GameLogic:
                                 for agressive_move in agressive_moves[1]:
                                     aux_board = Board()
                                     # aux_board.boards = copy.deepcopy(gameboard.boards)
-                                    aux_board.boards = gameboard.copyBoard()
+                                    # aux_board.boards = gameboard.copyBoard()
+                                    aux_board.boards = numpy.copy(gameboard.boards)
                                     self.updateBoard([homeboard,board,row,col], [1,other_color,agressive_move[0],agressive_move[1]], offset, "B", "W", aux_board)
                                     if(aux_board.isNotRepeated(repeated)):
                                         moves.append([[homeboard,board,row,col], [1,other_color,agressive_move[0],agressive_move[1]], offset])
@@ -628,7 +610,8 @@ class GameLogic:
                                 for agressive_move in agressive_moves[0]:
                                     aux_board = Board()
                                     # aux_board.boards = copy.deepcopy(gameboard.boards)
-                                    aux_board.boards = gameboard.copyBoard()
+                                    # aux_board.boards = gameboard.copyBoard()
+                                    aux_board.boards = numpy.copy(gameboard.boards)
                                     self.updateBoard([homeboard,board,row,col], [0,other_color,agressive_move[0],agressive_move[1]], offset, "W", "B", aux_board)
                                     if(aux_board.isNotRepeated(repeated)):
                                         moves.append([[homeboard,board,row,col], [0,other_color,agressive_move[0],agressive_move[1]], offset])
@@ -636,7 +619,8 @@ class GameLogic:
                                 for agressive_move in agressive_moves[1]:
                                     aux_board = Board()
                                     # aux_board.boards = copy.deepcopy(gameboard.boards)
-                                    aux_board.boards = gameboard.copyBoard()
+                                    # aux_board.boards = gameboard.copyBoard()
+                                    aux_board.boards = numpy.copy(gameboard.boards)
                                     self.updateBoard([homeboard,board,row,col], [1,other_color,agressive_move[0],agressive_move[1]], offset, "W", "B", aux_board)
                                     if(aux_board.isNotRepeated(repeated)):
                                         moves.append([[homeboard,board,row,col], [1,other_color,agressive_move[0],agressive_move[1]], offset])
@@ -918,7 +902,8 @@ class GameLogic:
 
         aux_board = Board()
         # aux_board.boards = copy.deepcopy(self.board)
-        aux_board.boards = self.board.copyBoard()
+        # aux_board.boards = self.board.copyBoard()
+        aux_board.boards = numpy.copy(self.board.boards)
         
         self.boards_history.append(aux_board)
 
@@ -1042,7 +1027,8 @@ class GameLogic:
         for move in moves:
             updated_board = Board()
             # updated_board.boards = copy.deepcopy(board.boards)
-            updated_board.boards = board.copyBoard()
+            # updated_board.boards = board.copyBoard()
+            updated_board.boards = numpy.copy(board.boards)
             self.updateBoard(move[0], move[1], move[2], piece, other_piece, updated_board)
             
             start_time2 = timeit.default_timer()
@@ -1085,7 +1071,8 @@ class GameLogic:
             best = [-sys.maxsize, None, None, None] 
             for move in moves_sorted:
                 updated_board = Board()
-                updated_board.boards = board.copyBoard()
+                # updated_board.boards = board.copyBoard()
+                updated_board.boards = numpy.copy(board.boards)
                 self.updateBoard(move[0], move[1], move[2], piece, other_piece, updated_board)
                 repeated.append(updated_board)     
                 score = self.minimax(updated_board, repeated, depth_size, depth-1,alpha,beta,False,turn, other_piece, piece)
@@ -1103,7 +1090,8 @@ class GameLogic:
             best = [sys.maxsize, None, None, None] 
             for move in moves_sorted:
                 updated_board = Board()
-                updated_board.boards = board.copyBoard()
+                # updated_board.boards = board.copyBoard()
+                updated_board.boards = numpy.copy(board.boards)
                 self.updateBoard(move[0], move[1], move[2], piece, other_piece, updated_board)
                 repeated.append(updated_board)
                 score = self.minimax(updated_board, repeated, depth_size, depth-1,alpha,beta,True,turn, other_piece, piece)
