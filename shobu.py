@@ -183,7 +183,7 @@ class Board:
 
 # -avaliaçao em ampulheta:
 #     -um board inimigo é tao bom quanto melhor for o board na diagonal (ataque)
-#     -um board amigo é tao bom quanto melhor for o board na hoizontal (ataque e fuga)
+#     -um board amigo é tao bom quanto melhor for o board na horizontal (ataque e fuga)
 
     def calcPoints(self, player, difficulty, gameLogic):
               
@@ -285,7 +285,7 @@ class GameLogic:
         self.board = Board()
         self.player = 1  # white=0, black=1
         
-        self.score = {0:0, 1:0} #scores initialized with 0, need this to minmax, but might change 
+        self.score = {0:0, 1:0} #scores initialized with 0, need this to minmax 
         self.boards_history = [] #boards that have already been played, in order to avoid them
         
         self.playerColor = None
@@ -991,56 +991,40 @@ class GameLogic:
         else:
             exit()
         
-        
         if depth == 0:
             return  [board.calcPoints(turn, difficulty, self), None, None, None]
         
-        moves_sorted = self.getLegalMoves(board, repeated, turn)
-        # start_time = timeit.default_timer()
-        # moves_sorted = self.sortMoves(board, repeated, turn, piece, other_piece, difficulty)
-        # elapsed2 = timeit.default_timer() - start_time
-        
-        # print(len(moves_sorted))
-        # print(elapsed2)
-        # print("")
-        
-        
+        moves_sorted = self.getLegalMoves(board, repeated, turn)        
         turn = self.switch_01(turn) # change player pov
     
-        if maximizing: # white to play (wants to maximize score)
+        if maximizing:      # white to play (wants to maximize score)
             best = [-sys.maxsize, None, None, None] 
             for move in moves_sorted:
                 updated_board = Board()
-                # updated_board.boards = copy.deepcopy(board.boards)
                 updated_board.boards = board.copyBoard()
                 self.updateBoard(move[0], move[1], move[2], piece, other_piece, updated_board)
-                repeated.append(updated_board)
-                
+                repeated.append(updated_board)     
                 score = self.minimax(updated_board, repeated, depth_size, depth-1,alpha,beta,False,turn, other_piece, piece)
                 repeated.pop()
-                if(score[0] > best[0] or (score[0] == best[0] and random.randrange(0,6) == 3)): # score value > best value, if its same updates with a certain probability
+                if(score[0] > best[0] or (score[0] == best[0] and random.randrange(0,6) == 3)): # score value > best value
                     if(depth == depth_size):
                         best = [score[0], move[0], move[1], move[2]]
                     else:
                         best[0] = score[0]
                 alpha = max(alpha,best[0])
                 if(alpha >= beta):
-                    break
-                
-                    
+                    break    
 
         else: # black to play (wants to minimize score)
             best = [sys.maxsize, None, None, None] 
             for move in moves_sorted:
                 updated_board = Board()
-                # updated_board.boards = copy.deepcopy(board.boards)
                 updated_board.boards = board.copyBoard()
                 self.updateBoard(move[0], move[1], move[2], piece, other_piece, updated_board)
                 repeated.append(updated_board)
-
                 score = self.minimax(updated_board, repeated, depth_size, depth-1,alpha,beta,True,turn, other_piece, piece)
                 repeated.pop()
-                if(score[0] < best[0] or (score[0] == best[0] and random.randrange(0,6) == 3)): # score value < best value, if its same updates with a certain probability
+                if(score[0] < best[0] or (score[0] == best[0] and random.randrange(0,6) == 3)): # score value < best value
                     if(depth == depth_size):
                         best = [score[0], move[0], move[1], move[2]]
                     else:
