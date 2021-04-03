@@ -726,7 +726,7 @@ class GameLogic:
                                 [player_side, other_color, agressive_selected[0], agressive_selected[1]],
                                 offset, piece, other_piece, self.board)[0]
 
-    def computerMove(self, color, depth, prune, piece, other_piece):
+    def computerMove(self, color, piece, other_piece):
         
         
         print("\n> > Computer's turn (" +color+ "):")
@@ -784,7 +784,7 @@ class GameLogic:
 
 
 
-    def makeMove(self, color, piece, other_piece, depth, prune):
+    def makeMove(self, color, piece, other_piece):
         if(self.mode == 1): #PvP         
             return self.playerMove(color, piece, other_piece)
                 
@@ -794,11 +794,11 @@ class GameLogic:
             if(self.player == self.playerColor):
                 return self.playerMove(color, piece, other_piece)  
             else:
-                return self.computerMove(color, depth, prune, piece, other_piece)
+                return self.computerMove(color, piece, other_piece)
                 
 
         else: # CvC
-            return self.computerMove(color, depth, prune, piece, other_piece)
+            return self.computerMove(color, piece, other_piece)
 
 
     # calls passive and agressive move functions; returns True if an enemy piece was pushed out of the board, else False
@@ -814,7 +814,7 @@ class GameLogic:
             piece = "W"
             other_piece = "B"
 
-        enemyPushedOff = self.makeMove(color, piece, other_piece, 5, True)
+        enemyPushedOff = self.makeMove(color, piece, other_piece)
 
         aux_board = Board()
         # aux_board.boards = copy.deepcopy(self.board)
