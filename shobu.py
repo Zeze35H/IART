@@ -670,12 +670,12 @@ class GameLogic:
     #                                 result = self.updateBoard([homeboard,board,row,col], [0,other_color,agressive_move[0],agressive_move[1]], offset, "B", "W", aux_board)
     #                                 if(aux_board.isNotRepeated(repeated)):
     #                                     if(result[0]): # if white piece is pushed off the board
-    #                                     num_insecure[homeboard*2 + color_board] += 1
-    #                                     try:
-    #                                         unique_pieces_vulnerable.index(result[2]) # only add if not already there
-    #                                     except ValueError:
-    #                                         unique_pieces_vulnerable.append(result[2])
-    #                                         unique_pieces_vulnerable_by_board[homeboard*2 + color_board] += 1
+    #                                         num_insecure[homeboard*2 + color_board] += 1
+    #                                         try:
+    #                                             unique_pieces_vulnerable.index(result[2]) # only add if not already there
+    #                                         except ValueError:
+    #                                             unique_pieces_vulnerable.append(result[2])
+    #                                             unique_pieces_vulnerable_by_board[homeboard*2 + color_board] += 1
                                         
                                 
     #                             for agressive_move in agressive_moves[1]:
@@ -684,7 +684,13 @@ class GameLogic:
     #                                 aux_board.boards = gameboard.copyBoard()
     #                                 self.updateBoard([homeboard,board,row,col], [1,other_color,agressive_move[0],agressive_move[1]], offset, "B", "W", aux_board)
     #                                 if(aux_board.isNotRepeated(repeated)):
-    #                                     moves.append([[homeboard,board,row,col], [1,other_color,agressive_move[0],agressive_move[1]], offset])
+    #                                     if(result[0]): # if white piece is pushed off the board
+    #                                         num_insecure[homeboard*2 + color_board] += 1
+    #                                         try:
+    #                                             unique_pieces_vulnerable.index(result[2]) # only add if not already there
+    #                                         except ValueError:
+    #                                             unique_pieces_vulnerable.append(result[2])
+    #                                             unique_pieces_vulnerable_by_board[homeboard*2 + color_board] += 1
 
     #                     elif(player == 0 and gameboard.boards[homeboard][board][row][col] == "W" and homeboard == 0): #If white player and white piece on white HB
     #                         passive_moves = self.legalPassiveMoves(gameboard ,homeboard, board, row, col, False)
@@ -699,7 +705,13 @@ class GameLogic:
     #                                 aux_board.boards = gameboard.copyBoard()
     #                                 self.updateBoard([homeboard,board,row,col], [0,other_color,agressive_move[0],agressive_move[1]], offset, "W", "B", aux_board)
     #                                 if(aux_board.isNotRepeated(repeated)):
-    #                                     moves.append([[homeboard,board,row,col], [0,other_color,agressive_move[0],agressive_move[1]], offset])
+    #                                     if(result[0]): # if white piece is pushed off the board
+    #                                         num_insecure[homeboard*2 + color_board] += 1
+    #                                         try:
+    #                                             unique_pieces_vulnerable.index(result[2]) # only add if not already there
+    #                                         except ValueError:
+    #                                             unique_pieces_vulnerable.append(result[2])
+    #                                             unique_pieces_vulnerable_by_board[homeboard*2 + color_board] += 1
                                     
     #                             for agressive_move in agressive_moves[1]:
     #                                 aux_board = Board()
@@ -707,7 +719,13 @@ class GameLogic:
     #                                 aux_board.boards = gameboard.copyBoard()
     #                                 self.updateBoard([homeboard,board,row,col], [1,other_color,agressive_move[0],agressive_move[1]], offset, "W", "B", aux_board)
     #                                 if(aux_board.isNotRepeated(repeated)):
-    #                                     moves.append([[homeboard,board,row,col], [1,other_color,agressive_move[0],agressive_move[1]], offset])
+    #                                     if(result[0]): # if white piece is pushed off the board
+    #                                         num_insecure[homeboard*2 + color_board] += 1
+    #                                         try:
+    #                                             unique_pieces_vulnerable.index(result[2]) # only add if not already there
+    #                                         except ValueError:
+    #                                             unique_pieces_vulnerable.append(result[2])
+    #                                             unique_pieces_vulnerable_by_board[homeboard*2 + color_board] += 1
 
     #     #elapsed = timeit.default_timer() - start_time
     #     #print("Elapsed Time on Legal Moves: ", elapsed)
@@ -1072,7 +1090,7 @@ class GameLogic:
                 repeated.append(updated_board)     
                 score = self.minimax(updated_board, repeated, depth_size, depth-1,alpha,beta,False,turn, other_piece, piece)
                 repeated.pop()
-                if(score[0] > best[0] or (score[0] == best[0] and random.randrange(0,6) == 3)): # score value > best value
+                if(score[0] > best[0] or (score[0] == best[0] and random.randrange(0,4) == 3)): # score value > best value
                     if(depth == depth_size):
                         best = [score[0], move[0], move[1], move[2]]
                     else:
@@ -1090,7 +1108,7 @@ class GameLogic:
                 repeated.append(updated_board)
                 score = self.minimax(updated_board, repeated, depth_size, depth-1,alpha,beta,True,turn, other_piece, piece)
                 repeated.pop()
-                if(score[0] < best[0] or (score[0] == best[0] and random.randrange(0,6) == 3)): # score value < best value
+                if(score[0] < best[0] or (score[0] == best[0] and random.randrange(0,4) == 3)): # score value < best value
                     if(depth == depth_size):
                         best = [score[0], move[0], move[1], move[2]]
                     else:
