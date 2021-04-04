@@ -146,25 +146,14 @@ class Board:
                         score += self.points_per_extra_piece_turn[2]
                     else: # 4 piece left
                         score += self.points_per_extra_piece_turn[3]
-<<<<<<< HEAD
-                                  
-=======
                                              
->>>>>>> 27694121c744ec80b33ac899a09af021dfc2be75
             individual_board_scores.append(score)
         
         return individual_board_scores
 
-<<<<<<< HEAD
-
-
-    #calculate total pointes using countNumPieces and calDiffNumPieces, returning the final score as the quadratic sum of the boards
-    def calcPoints(self, player, difficulty, gameLogic):
-=======
       
     # evaluation function. evaluates each board based on the difference of the number of pieces and returns reduces the scores to a single value 
     def calcPoints(self, player):
->>>>>>> 27694121c744ec80b33ac899a09af021dfc2be75
               
         boards_num_pieces = self.countNumPieces()
 
@@ -174,12 +163,8 @@ class Board:
   
         return final_score
         
-<<<<<<< HEAD
-             
-=======
 
     # checks if given board hasn't been played (path from given board state to the root)
->>>>>>> 27694121c744ec80b33ac899a09af021dfc2be75
     def isNotRepeated(self, repeated):
         for board in repeated:
             if(numpy.array_equal(self.boards, board.boards, equal_nan=False)):
@@ -256,9 +241,6 @@ class GameLogic:
             return player_side, WHITE_BOARD, row_index, 3
         else:
             return None, None, None, None
-<<<<<<< HEAD
-
-=======
         
         
     # receives piece board position; returns respective coordinates
@@ -272,7 +254,6 @@ class GameLogic:
             
     
     # translates column board position to column coordinate
->>>>>>> 27694121c744ec80b33ac899a09af021dfc2be75
     def colIndexToLetter(self, color_side, col_index):
         if(color_side == 0):
             if(col_index == 0):
@@ -337,27 +318,6 @@ class GameLogic:
     #  PASSIVE MOVE
     # =============================================================================
 
-<<<<<<< HEAD
-    # receives input from user to select desired piece; returns piece coordinates
-    def selectPiece(self, color):
-        while(True):
-            cell_input = input("Select a "+color +
-                               " piece from your homeboard (<row><column>): ")
-
-            player_side, color_side, row_index, col_index = self.parseInput(
-                cell_input)
-
-            if(color_side is None or row_index is None or col_index is None):
-                print("INVALID INPUT")
-                continue
-
-            if(player_side != self.player):
-                print("CHOOSE A PIECE FROM ONE OF YOUR HOMEBOARDS")
-            else:
-                if((self.player == 0 and self.board.boards[WHITE_HB][color_side][row_index][col_index] == 'W') or
-                   (self.player == 1 and self.board.boards[BLACK_HB][color_side][row_index][col_index] == 'B')):
-                    return color_side, row_index, col_index
-=======
     # receives input from user to select desired piece; returns piece board position
 
     def selectPiece(self, color, piece, other_piece):
@@ -385,15 +345,11 @@ class GameLogic:
     
                 if(player_side != self.player):
                     print("CHOOSE A PIECE FROM ONE OF YOUR HOMEBOARDS")
->>>>>>> 27694121c744ec80b33ac899a09af021dfc2be75
                 else:
                     print("CHOOSE A PIECE OF YOUR COLOR")
 
-<<<<<<< HEAD
-=======
 
     # displays board with an 'x' in the available passive move options; returns options
->>>>>>> 27694121c744ec80b33ac899a09af021dfc2be75
 
     # displays board with an 'x' in the available passive move options; returns options
     def legalPassiveMoves(self, board, homeboard, color_side, row_index, col_index, is_human):
@@ -492,12 +448,8 @@ class GameLogic:
     #  AGRESSIVE MOVE
     # =============================================================================
 
-<<<<<<< HEAD
-    # receives cell coordinates and passive move offset, checks if it's possible; returns True/False
-=======
     # receives cell board postition and passive move offset, checks if it's possible; returns True/False
 
->>>>>>> 27694121c744ec80b33ac899a09af021dfc2be75
     def verifyDirection(self, board, player_side, color_side, row, col, offset, piece, other_piece):
         if(row + offset[0] not in [0, 1, 2, 3] or col + offset[1] not in [0, 1, 2, 3]):
             # print(row + offset[0], col + offset[1])
@@ -543,13 +495,9 @@ class GameLogic:
 
         return [options1, options2]
 
-<<<<<<< HEAD
-    # gets all legal moves and returns four lists with passive and agressive from each player
-=======
 
     # gets all legal moves and returns four lists with passive and agressive for a given player
 
->>>>>>> 27694121c744ec80b33ac899a09af021dfc2be75
     def getLegalMoves(self, gameboard, repeated, player):
         moves = []
         for homeboard in range(2):
@@ -605,15 +553,10 @@ class GameLogic:
                                     if(aux_board.isNotRepeated(repeated)): # if does not result in a repeated board, add as an option
                                         moves.append([[homeboard,board,row,col], [1,other_color,agressive_move[0],agressive_move[1]], offset])
 
-<<<<<<< HEAD
-        return moves
-
-=======
 
         return moves
 
 
->>>>>>> 27694121c744ec80b33ac899a09af021dfc2be75
     # displays agressive move options and lets player choose one; returns selected piece (or 0 if player wants to re-select passive move)
     def agressiveMoveOptions(self, color_side, options):
         print("\nAgressive move options:")
@@ -675,25 +618,12 @@ class GameLogic:
 
 
     # receives selected passive and agressive pieces, the move offset and the player and enemy player's pieces; returns True if an enemy piece was pushed out of the board, else False
-<<<<<<< HEAD
-    def updateBoard(self, passive_piece, agressive_piece, offset, piece, other_piece, board): 
-        if(board.boards[passive_piece[0]][passive_piece[1]][passive_piece[2]][passive_piece[3]] == ' '
-           or board.boards[agressive_piece[0]][agressive_piece[1]][agressive_piece[2]][agressive_piece[3]] == ' '):
-            print("Panic")
-            print(passive_piece)
-            print(agressive_piece)
-            print(offset)
-            print(piece)
-            exit()
-                   
-=======
 
 
     def updateBoard(self, passive_piece, agressive_piece, offset, piece, other_piece, board):
             
         
         # clear original passive_piece location
->>>>>>> 27694121c744ec80b33ac899a09af021dfc2be75
         board.boards[passive_piece[0]][passive_piece[1]][passive_piece[2]][passive_piece[3]] = ' '
         # relocate passive_piece
         board.boards[passive_piece[0]][passive_piece[1]][passive_piece[2] + offset[0]][passive_piece[3] + offset[1]] = piece
@@ -734,8 +664,6 @@ class GameLogic:
 
     # displays given move in a user friendly format
 
-<<<<<<< HEAD
-=======
     def displayMove(self, passive_piece, agressive_piece, offset, message):
         passive_output = self.parseOutput(passive_piece[0],passive_piece[1],passive_piece[2],passive_piece[3])
         agressive_output = self.parseOutput(agressive_piece[0],agressive_piece[1],agressive_piece[2],agressive_piece[3])
@@ -746,7 +674,6 @@ class GameLogic:
         
     # makes move for a player 
        
->>>>>>> 27694121c744ec80b33ac899a09af021dfc2be75
     def playerMove(self, color, piece, other_piece):
         while(True):
             offset, color_side, passive_selected = self.passiveMove(color)
@@ -815,13 +742,6 @@ class GameLogic:
                     depth = 3
  
         best_move = self.minimax(self.board, self.boards_history, depth, depth, -sys.maxsize, sys.maxsize, maximizing, self.player, piece, other_piece)
-<<<<<<< HEAD
-        return self.updateBoard(best_move[1], best_move[2], best_move[3], piece, other_piece, self.board)[0]
-
-
-    #calls the function to do the move according to the game mode
-    def makeMove(self, color, piece, other_piece, depth, prune):
-=======
         
         self.displayMove(best_move[1], best_move[2], best_move[3], "Moved ")
         
@@ -831,7 +751,6 @@ class GameLogic:
     # makes a move for the player or the computer
     
     def makeMove(self, color, piece, other_piece):
->>>>>>> 27694121c744ec80b33ac899a09af021dfc2be75
         if(self.mode == 1): #PvP         
             return self.playerMove(color, piece, other_piece)
                 
@@ -848,16 +767,8 @@ class GameLogic:
             return self.computerMove(color, depth, prune, piece, other_piece)
 
 
-<<<<<<< HEAD
-    # calls passive and agressive move functions; returns True if an enemy piece was pushed out of the board, else False
-=======
-    # makes a turn for a player/computer, adds resulting board to the game history; returns if any piece was pushed of the board in the turn
-
->>>>>>> 27694121c744ec80b33ac899a09af021dfc2be75
-    def turn(self):
         if(self.player):
             color = 'Black'
-            piece = "B"
             other_piece = "W"
         else:
             color = 'White'
@@ -895,7 +806,24 @@ class GameLogic:
         else:
             return "BLACK"
 
+    def turn(self):
+        if(self.player):
+            color = 'Black'
+            piece = "B"
+            other_piece = "W"
+        else:
+            color = 'White'
+            piece = "W"
+            other_piece = "B"
 
+        enemyPushedOff = self.makeMove(color, piece, other_piece, 5, True)
+
+        aux_board = Board()
+        aux_board.boards = numpy.copy(self.board.boards)
+        
+        self.boards_history.append(aux_board)
+
+        return  enemyPushedOff
     # checks for a winner in all boards
     def isThereWinner(self):
         for i in range(2):
@@ -960,83 +888,18 @@ class GameLogic:
                 if(winner):
                     break
             self.player = self.switch_01(self.player)
-<<<<<<< HEAD
-            if(self.player == 0):
-                print("WHITE TURN")
-            else:
-                print("BLACK TURN")
-            print(
-                "\n=====================================================================")
-            elapsed = timeit.default_timer() - start_time
-            print("||||||||| Elapsed Time on This Turn: ", elapsed)
-            sum+= elapsed
-=======
             
             elapsed = timeit.default_timer() - start_time
             print("\n| Elapsed Time on This Turn: ", elapsed)
             sum+= elapsed
             print("\n=====================================================================")
             
->>>>>>> 27694121c744ec80b33ac899a09af021dfc2be75
         print("\n=====================================================================")
         self.board.display()
         print("\nGAME OVER! WINNER IS: " + winner)
         print("\nTotal Time: ", sum)
 
     
-<<<<<<< HEAD
-    def sortMoves(self, board, repeated, turn, piece, other_piece, difficulty):
-
-        
-        start_time1 = timeit.default_timer()
-        moves = self.getLegalMoves(board, repeated, turn)
-        elapsed1 = timeit.default_timer() - start_time1
-        #print("- getLegal: ", elapsed1)
-        
-        
-        move_scores = []
-        elapsed2 = 0
-        
-        if(difficulty == 3):
-            difficulty == 2
-        
-        for move in moves:
-            updated_board = Board()
-            # updated_board.boards = copy.deepcopy(board.boards)
-            # updated_board.boards = board.copyBoard()
-            updated_board.boards = numpy.copy(board.boards)
-            self.updateBoard(move[0], move[1], move[2], piece, other_piece, updated_board)
-            
-            start_time2 = timeit.default_timer()
-            move_score = board.calcPoints(turn, difficulty, self)
-            elapsed2 += timeit.default_timer() - start_time2
-            
-            move_scores.append([move, move_score])
-        #print("- calcPoints: ", elapsed2)
-
-
-
-        if turn == 1:
-            best_move = sorted(move_scores, key= lambda move_score : move_score[1]) #ascending order, for black
-        else:
-            best_move = sorted(move_scores, key= lambda move_score : move_score[1], reverse=True)
-
-        #moves.remove(best_move[0])
-        #moves.insert(0, best_move[0])
-        return moves
-
-    def minimax(self, board, repeated, depth_size, depth, alpha, beta, maximizing, turn, piece, other_piece):
-        
-        if(self.mode == 2):
-            difficulty = self.difficulty
-        elif(self.mode == 3):
-            if(turn == 1): # black player
-                difficulty = self.difficultyBlack
-            else:
-                difficulty = self.difficultyWhite
-        else:
-            exit()
-=======
     # def sortMoves(self, board, repeated, turn, piece, other_piece):       
     #     moves = self.getLegalMoves(board, repeated, turn)
     #     move_scores = []
@@ -1057,14 +920,10 @@ class GameLogic:
 
     def minimax(self, board, repeated, depth_size, depth, alpha, beta, maximizing, turn, piece, other_piece):
         
->>>>>>> 27694121c744ec80b33ac899a09af021dfc2be75
         
         if depth == 0:
             return  [board.calcPoints(turn), None, None, None]
         
-<<<<<<< HEAD
-        moves_sorted = self.getLegalMoves(board, repeated, turn)        
-=======
         moves = self.getLegalMoves(board, repeated, turn)      
         if len(moves) < 0:
             if turn:
@@ -1072,7 +931,6 @@ class GameLogic:
             else:
                 print ("White Won, black has no moves")
             sys.exit(0)  
->>>>>>> 27694121c744ec80b33ac899a09af021dfc2be75
         turn = self.switch_01(turn) # change player pov
         
         # white to play (wants to maximize score)
